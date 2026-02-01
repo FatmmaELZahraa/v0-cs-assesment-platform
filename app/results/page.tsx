@@ -133,7 +133,7 @@ const playSuccessSound = async () => {
     sourceNode.start(0)
 
     // ⏱️ Stop after 15 seconds
-    stopTimeout = window.setTimeout(stopSound, 7000)
+    stopTimeout = window.setTimeout(stopSound, 9000)
 
     // 🖱️ Stop on any user click
     document.addEventListener('click', stopSound)
