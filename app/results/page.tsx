@@ -38,12 +38,18 @@ export default function ResultsPage() {
     try {
       const audio = new Audio("/sounds/success.mp3")
       audio.volume = 0.6
-      audio.play().catch(() => {
-        // Audio playback failed, continue silently
-      })
-    } catch {
-      // Audio not supported, continue silently
+      console.log("[v0] Attempting to play sound...")
+      audio.play()
+        .then(() => console.log("[v0] Sound played successfully"))
+        .catch((err) => console.log("[v0] Audio playback failed:", err))
+    } catch (err) {
+      console.log("[v0] Audio error:", err)
     }
+  }
+
+  // Handle user click to enable audio (browsers require user interaction)
+  const handleUserInteraction = () => {
+    playSuccessSound()
   }
 
   // Create confetti particles
@@ -157,7 +163,7 @@ export default function ResultsPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background relative overflow-hidden">
+    <main className="min-h-screen bg-background relative overflow-hidden" onClick={handleUserInteraction}>
       {/* Confetti Canvas */}
       <canvas
         ref={canvasRef}
