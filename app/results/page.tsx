@@ -32,60 +32,83 @@ export default function ResultsPage() {
   const totalQuestions = 6
   const correctAnswers = 5
 
-  // Play celebration sound using Web Audio API
-  const playSuccessSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-      audioContextRef.current = audioContext
+  // // Play celebration sound using Web Audio API
+  // const playSuccessSound = () => {
+  //   try {
+  //     const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+  //     audioContextRef.current = audioContext
 
-      // Play a series of ascending notes for celebration
-      const notes = [523.25, 659.25, 783.99, 1046.50] // C5, E5, G5, C6
+  //     // Play a series of ascending notes for celebration
+  //     const notes = [523.25, 659.25, 783.99, 1046.50] // C5, E5, G5, C6
       
-      notes.forEach((freq, index) => {
-        const oscillator = audioContext.createOscillator()
-        const gainNode = audioContext.createGain()
+  //     notes.forEach((freq, index) => {
+  //       const oscillator = audioContext.createOscillator()
+  //       const gainNode = audioContext.createGain()
         
-        oscillator.connect(gainNode)
-        gainNode.connect(audioContext.destination)
+  //       oscillator.connect(gainNode)
+  //       gainNode.connect(audioContext.destination)
         
-        oscillator.frequency.value = freq
-        oscillator.type = "sine"
+  //       oscillator.frequency.value = freq
+  //       oscillator.type = "sine"
         
-        const startTime = audioContext.currentTime + index * 0.15
-        const duration = 0.3
+  //       const startTime = audioContext.currentTime + index * 0.15
+  //       const duration = 0.3
         
-        gainNode.gain.setValueAtTime(0, startTime)
-        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05)
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+  //       gainNode.gain.setValueAtTime(0, startTime)
+  //       gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05)
+  //       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
         
-        oscillator.start(startTime)
-        oscillator.stop(startTime + duration)
-      })
+  //       oscillator.start(startTime)
+  //       oscillator.stop(startTime + duration)
+  //     })
 
-      // Final chord
-      setTimeout(() => {
-        const chordFreqs = [523.25, 659.25, 783.99]
-        chordFreqs.forEach(freq => {
-          const oscillator = audioContext.createOscillator()
-          const gainNode = audioContext.createGain()
+  //     // Final chord
+  //     setTimeout(() => {
+  //       const chordFreqs = [523.25, 659.25, 783.99]
+  //       chordFreqs.forEach(freq => {
+  //         const oscillator = audioContext.createOscillator()
+  //         const gainNode = audioContext.createGain()
           
-          oscillator.connect(gainNode)
-          gainNode.connect(audioContext.destination)
+  //         oscillator.connect(gainNode)
+  //         gainNode.connect(audioContext.destination)
           
-          oscillator.frequency.value = freq
-          oscillator.type = "sine"
+  //         oscillator.frequency.value = freq
+  //         oscillator.type = "sine"
           
-          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1)
+  //         gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
+  //         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1)
           
-          oscillator.start()
-          oscillator.stop(audioContext.currentTime + 1)
-        })
-      }, 600)
-    } catch {
-      // Audio not supported, continue silently
-    }
+  //         oscillator.start()
+  //         oscillator.stop(audioContext.currentTime + 1)
+  //       })
+  //     }, 600)
+  //   } catch {
+  //     // Audio not supported, continue silently
+  //   }
+  // }
+const playSuccessSound = async () => {
+  try {
+    const audioContext =
+      new (window.AudioContext ||
+        (window as any).webkitAudioContext)()
+
+    const response = await fetch('/sounds/success.mp3')
+    const arrayBuffer = await response.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+    const source = audioContext.createBufferSource()
+    const gainNode = audioContext.createGain()
+
+    source.buffer = audioBuffer
+    source.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    gainNode.gain.value = 0.7
+    source.start(0)
+  } catch {
+    // Fail silently
   }
+}
 
   // Create confetti particles
   const createParticles = () => {
