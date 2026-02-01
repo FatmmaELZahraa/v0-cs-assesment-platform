@@ -132,10 +132,8 @@ const playSuccessSound = async () => {
     gainNode.gain.value = 0.7
     sourceNode.start(0)
 
-    // ⏱️ Stop after 15 seconds
-    stopTimeout = window.setTimeout(stopSound, 9000)
+    stopTimeout = window.setTimeout(stopSound, 8000)
 
-    // 🖱️ Stop on any user click
     document.addEventListener('click', stopSound)
 
   } catch {
@@ -279,7 +277,7 @@ const playSuccessSound = async () => {
             }`}
           >
             {/* Trophy Icon */}
-            <div className="relative inline-block mb-6">
+            {/* <div className="relative inline-block mb-6">
               <div className={`transition-all duration-700 ${showScore ? "scale-100" : "scale-0"}`}>
                 <div className="relative">
                   <Trophy className="h-24 w-24 text-amber-400 mx-auto animate-bounce" />
@@ -287,7 +285,7 @@ const playSuccessSound = async () => {
                   <Star className="h-6 w-6 text-amber-300 absolute -bottom-1 -left-2 animate-pulse" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Score Circle */}
             <div className="relative inline-flex items-center justify-center mb-8">
@@ -343,7 +341,7 @@ const playSuccessSound = async () => {
               showDetails ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            <CardContent className="p-6">
+            {/* <CardContent className="p-6">
               <div className="grid grid-cols-3 gap-6 text-center">
                 <div className="space-y-1">
                   <p className="text-3xl font-bold text-teal-500">{correctAnswers}</p>
@@ -391,7 +389,7 @@ const playSuccessSound = async () => {
                   </div>
                 </div>
               </div>
-            </CardContent>
+            </CardContent> */}
           </Card>
 
           {/* Action Buttons */}
