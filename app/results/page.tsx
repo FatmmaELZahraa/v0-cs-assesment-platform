@@ -32,6 +32,32 @@ export default function ResultsPage() {
   const totalQuestions = 6
   const correctAnswers = 5
 
+  let audioContext: AudioContext | null = null
+let sourceNode: AudioBufferSourceNode | null = null
+let stopTimeout: number | null = null
+
+const stopSound = () => {
+  if (sourceNode) {
+    try {
+      sourceNode.stop()
+    } catch {}
+    sourceNode.disconnect()
+    sourceNode = null
+  }
+
+  if (audioContext) {
+    audioContext.close()
+    audioContext = null
+  }
+
+  if (stopTimeout) {
+    clearTimeout(stopTimeout)
+    stopTimeout = null
+  }
+
+  document.removeEventListener('click', stopSound)
+}
+
   // // Play celebration sound using Web Audio API
   // const playSuccessSound = () => {
   //   try {
@@ -88,7 +114,7 @@ export default function ResultsPage() {
   // }
 const playSuccessSound = async () => {
   try {
-    const audioContext =
+    audioContext =
       new (window.AudioContext ||
         (window as any).webkitAudioContext)()
 
@@ -96,17 +122,24 @@ const playSuccessSound = async () => {
     const arrayBuffer = await response.arrayBuffer()
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-    const source = audioContext.createBufferSource()
+    sourceNode = audioContext.createBufferSource()
     const gainNode = audioContext.createGain()
 
-    source.buffer = audioBuffer
-    source.connect(gainNode)
+    sourceNode.buffer = audioBuffer
+    sourceNode.connect(gainNode)
     gainNode.connect(audioContext.destination)
 
     gainNode.gain.value = 0.7
-    source.start(0)
+    sourceNode.start(0)
+
+    // ⏱️ Stop after 15 seconds
+    stopTimeout = window.setTimeout(stopSound, 15000)
+
+    // 🖱️ Stop on any user click
+    document.addEventListener('click', stopSound)
+
   } catch {
-    // Fail silently
+    // fail silently
   }
 }
 
