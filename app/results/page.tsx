@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Trophy, Star, Sparkles, Home, RotateCcw, Download } from "lucide-react"
+import { AudioContext } from "standardized-audio-context"
 
 interface Particle {
   id: number
@@ -32,56 +33,14 @@ export default function ResultsPage() {
   const totalQuestions = 6
   const correctAnswers = 5
 
-  // Play celebration sound using Web Audio API
+  // Play celebration sound from audio file
   const playSuccessSound = () => {
     try {
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-      audioContextRef.current = audioContext
-
-      // Play a series of ascending notes for celebration
-      const notes = [523.25, 659.25, 783.99, 1046.50] // C5, E5, G5, C6
-      
-      notes.forEach((freq, index) => {
-        const oscillator = audioContext.createOscillator()
-        const gainNode = audioContext.createGain()
-        
-        oscillator.connect(gainNode)
-        gainNode.connect(audioContext.destination)
-        
-        oscillator.frequency.value = freq
-        oscillator.type = "sine"
-        
-        const startTime = audioContext.currentTime + index * 0.15
-        const duration = 0.3
-        
-        gainNode.gain.setValueAtTime(0, startTime)
-        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05)
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
-        
-        oscillator.start(startTime)
-        oscillator.stop(startTime + duration)
+      const audio = new Audio("/sounds/success.mp3")
+      audio.volume = 0.6
+      audio.play().catch(() => {
+        // Audio playback failed, continue silently
       })
-
-      // Final chord
-      setTimeout(() => {
-        const chordFreqs = [523.25, 659.25, 783.99]
-        chordFreqs.forEach(freq => {
-          const oscillator = audioContext.createOscillator()
-          const gainNode = audioContext.createGain()
-          
-          oscillator.connect(gainNode)
-          gainNode.connect(audioContext.destination)
-          
-          oscillator.frequency.value = freq
-          oscillator.type = "sine"
-          
-          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1)
-          
-          oscillator.start()
-          oscillator.stop(audioContext.currentTime + 1)
-        })
-      }, 600)
     } catch {
       // Audio not supported, continue silently
     }
@@ -194,9 +153,6 @@ export default function ResultsPage() {
       clearTimeout(timer2)
       clearTimeout(timer3)
       clearTimeout(timer4)
-      if (audioContextRef.current) {
-        audioContextRef.current.close()
-      }
     }
   }, [])
 
