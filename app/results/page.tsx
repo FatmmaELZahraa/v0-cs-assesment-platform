@@ -360,10 +360,7 @@ export default function ResultsPage() {
               <RotateCcw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
-            <Button className="bg-teal-500 hover:bg-teal-600 text-black">
-              <Download className="h-4 w-4 mr-2" />
-              Download Certificate
-            </Button>
+        
           </div>
         </div>
       </div>
