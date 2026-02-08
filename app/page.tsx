@@ -16,17 +16,16 @@ import { Label } from "@/components/ui/label"
 const tracks = [
   { value: "frontend", label: "Frontend Development" },
   { value: "backend", label: "Backend Development" },
-  { value: "fullstack", label: "Full Stack Development" },
-  { value: "mobile", label: "Mobile Development" },
-  { value: "devops", label: "DevOps & Cloud" },
-  { value: "data", label: "Data Engineering" },
+  { value: "game-development", label: "GameDevelopment" },
+  { value: "flutter", label: "Flutter Development" },
+  { value: "cyber-security", label: "Cyber Security" },
+ 
 ]
 
 const levels = [
   { value: "junior", label: "Junior (0-2 years)" },
   { value: "mid", label: "Mid-Level (2-5 years)" },
   { value: "senior", label: "Senior (5-8 years)" },
-  { value: "lead", label: "Lead / Staff (8+ years)" },
 ]
 
 export default function Home() {

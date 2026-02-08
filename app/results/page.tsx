@@ -276,18 +276,18 @@ const playSuccessSound = async () => {
               showScore ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            {/* Trophy Icon */}
-            {/* <div className="relative inline-block mb-6">
-              <div className={`transition-all duration-700 ${showScore ? "scale-100" : "scale-0"}`}>
-                <div className="relative">
-                  <Trophy className="h-24 w-24 text-amber-400 mx-auto animate-bounce" />
-                  <Sparkles className="h-8 w-8 text-amber-300 absolute -top-2 -right-2 animate-ping" />
-                  <Star className="h-6 w-6 text-amber-300 absolute -bottom-1 -left-2 animate-pulse" />
-                </div>
-              </div>
-            </div> */}
+          
 
             {/* Score Circle */}
+                       {/* <img
+    src="/images/istockphoto-1494315736-612x612.jpg"
+    alt="Celebration Penguin"
+    className={`w-32 h-32 transition-all duration-1000 ${
+      showScore
+        ? "opacity-100 translate-x-0 scale-100"
+        : "opacity-0 translate-x-6 scale-90"
+    } animate-bounce`}
+  /> */}
             <div className="relative inline-flex items-center justify-center mb-8">
               <svg className="w-48 h-48 transform -rotate-90">
                 <circle
@@ -318,9 +318,10 @@ const playSuccessSound = async () => {
                 <span className="text-6xl font-bold text-foreground">{scoreValue}</span>
                 <span className="text-xl text-muted-foreground">/ 100</span>
               </div>
-            </div>
+  
           </div>
-
+          </div>
+   
           {/* Congratulations Message */}
           <div
             className={`text-center transition-all duration-1000 ${
