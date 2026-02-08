@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2 } from "lucide-react"
 import { CodeEditor } from "@/components/code-editor"
 import page from "../page"
+import { executeCode } from "@/assesment/src/services/execution.service"
 type QuestionType = "mcq" | "open-ended" | "code"
 
 interface Question {
@@ -116,6 +117,20 @@ function AssessmentContent() {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [timeRemaining, setTimeRemaining] = useState(60 * 60) // 60 minutes
+  const [output, setOutput] = useState("");
+const [isRunning, setIsRunning] = useState(false);
+
+const handleRunCode = async () => {
+  setIsRunning(true);
+  try {
+    const result = await executeCode(answers[question.id], 63); 
+    setOutput(atob(result.stdout || result.stderr || result.compile_output));
+  } finally {
+    setIsRunning(false);
+  }
+};
+
+
 
   useEffect(() => {
   // src/app/assessment/page.tsx (داخل fetchQuestions)
@@ -172,7 +187,7 @@ const fetchQuestions = async () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
-        <p className="text-teal-400 font-mono">Gemini Loading...</p>
+        <p className="text-teal-400 font-mono">Gemini ...</p>
       </div>
     );
   }
@@ -398,6 +413,13 @@ const fetchQuestions = async () => {
                     )}
                   </div>
                 )}
+       {/* أضف الزر والـ Output تحت الـ CodeEditor */}
+<Button onClick={handleRunCode} disabled={isRunning}>
+  {isRunning ? "Running..." : "Run Code"}
+</Button>
+<pre className="bg-black text-green-400 p-4 mt-2 rounded-md">
+  {output || "Output will appear here..."}
+</pre>
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-6 border-t border-border">
