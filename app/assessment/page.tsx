@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Clock, CheckCircle2 } from "lucide-react"
 import { CodeEditor } from "@/components/code-editor"
 import page from "../page"
 import { executeCode } from "@/assesment/src/services/execution.service"
+
 type QuestionType = "mcq" | "open-ended" | "code"
 
 interface Question {
@@ -26,93 +27,93 @@ interface Question {
   testCases?: { input: string; expectedOutput: string }[]
 }
 
-// const sampleQuestions: Question[] = [
-//   {
-//     id: 1,
-//     type: "mcq",
-//     title: "React Component Lifecycle",
-//     description: "Which hook is used to perform side effects in a functional React component?",
-//     options: [
-//       "useState",
-//       "useEffect",
-//       "useContext",
-//       "useReducer"
-//     ]
-//   },
-//   {
-//     id: 2,
-//     type: "mcq",
-//     title: "JavaScript Closures",
-//     description: "What will be the output of the following code?\n\nfunction outer() {\n  let count = 0;\n  return function inner() {\n    count++;\n    return count;\n  }\n}\nconst fn = outer();\nconsole.log(fn());\nconsole.log(fn());",
-//     options: [
-//       "1, 1",
-//       "1, 2",
-//       "0, 1",
-//       "undefined, undefined"
-//     ]
-//   },
-//   {
-//     id: 3,
-//     type: "open-ended",
-//     title: "System Design",
-//     description: "Explain how you would design a real-time notification system for a social media application. Consider scalability, message delivery guarantees, and user experience."
-//   },
-//   {
-//     id: 4,
-//     type: "open-ended",
-//     title: "Problem Solving Approach",
-//     description: "Describe your approach to debugging a performance issue in a web application where the page load time has suddenly increased from 2 seconds to 10 seconds."
-//   },
-//   {
-//     id: 5,
-//     type: "code",
-//     title: "Array Manipulation",
-//     description: "Write a function that takes an array of integers and returns a new array containing only the unique elements, preserving the original order of first occurrence.",
-//     starterCode: `function getUniqueElements(arr) {
-//   // Your code here
+const questions: Question[] = [
+  {
+    id: 1,
+    type: "mcq",
+    title: "React Component Lifecycle",
+    description: "Which hook is used to perform side effects in a functional React component?",
+    options: [
+      "useState",
+      "useEffect",
+      "useContext",
+      "useReducer"
+    ]
+  },
+  {
+    id: 2,
+    type: "mcq",
+    title: "JavaScript Closures",
+    description: "What will be the output of the following code?\n\nfunction outer() {\n  let count = 0;\n  return function inner() {\n    count++;\n    return count;\n  }\n}\nconst fn = outer();\nconsole.log(fn());\nconsole.log(fn());",
+    options: [
+      "1, 1",
+      "1, 2",
+      "0, 1",
+      "undefined, undefined"
+    ]
+  },
+  {
+    id: 3,
+    type: "open-ended",
+    title: "System Design",
+    description: "Explain how you would design a real-time notification system for a social media application. Consider scalability, message delivery guarantees, and user experience."
+  },
+  {
+    id: 4,
+    type: "open-ended",
+    title: "Problem Solving Approach",
+    description: "Describe your approach to debugging a performance issue in a web application where the page load time has suddenly increased from 2 seconds to 10 seconds."
+  },
+  {
+    id: 5,
+    type: "code",
+    title: "Array Manipulation",
+    description: "Write a function that takes an array of integers and returns a new array containing only the unique elements, preserving the original order of first occurrence.",
+    starterCode: `function getUniqueElements(arr) {
+  // Your code here
   
-// }
+}
 
-// // Test cases:
-// // getUniqueElements([1, 2, 2, 3, 4, 4, 5]) => [1, 2, 3, 4, 5]
-// // getUniqueElements([1, 1, 1, 1]) => [1]
-// // getUniqueElements([]) => []`,
-//     language: "javascript",
-//     testCases: [
-//       { input: "[1, 2, 2, 3, 4, 4, 5]", expectedOutput: "[1, 2, 3, 4, 5]" },
-//       { input: "[1, 1, 1, 1]", expectedOutput: "[1]" },
-//       { input: "[]", expectedOutput: "[]" }
-//     ]
-//   },
-//   {
-//     id: 6,
-//     type: "code",
-//     title: "String Processing",
-//     description: "Implement a function that checks if a string is a valid palindrome, considering only alphanumeric characters and ignoring case.",
-//     starterCode: `function isPalindrome(str) {
-//   // Your code here
+// Test cases:
+// getUniqueElements([1, 2, 2, 3, 4, 4, 5]) => [1, 2, 3, 4, 5]
+// getUniqueElements([1, 1, 1, 1]) => [1]
+// getUniqueElements([]) => []`,
+    language: "javascript",
+    testCases: [
+      { input: "[1, 2, 2, 3, 4, 4, 5]", expectedOutput: "[1, 2, 3, 4, 5]" },
+      { input: "[1, 1, 1, 1]", expectedOutput: "[1]" },
+      { input: "[]", expectedOutput: "[]" }
+    ]
+  },
+  {
+    id: 6,
+    type: "code",
+    title: "String Processing",
+    description: "Implement a function that checks if a string is a valid palindrome, considering only alphanumeric characters and ignoring case.",
+    starterCode: `function isPalindrome(str) {
+  // Your code here
   
-// }
+}
 
-// // Test cases:
-// // isPalindrome("A man, a plan, a canal: Panama") => true
-// // isPalindrome("race a car") => false
-// // isPalindrome(" ") => true`,
-//     language: "javascript",
-//     testCases: [
-//       { input: '"A man, a plan, a canal: Panama"', expectedOutput: "true" },
-//       { input: '"race a car"', expectedOutput: "false" },
-//       { input: '" "', expectedOutput: "true" }
-//     ]
-//   }
-// ]
+// Test cases:
+// isPalindrome("A man, a plan, a canal: Panama") => true
+// isPalindrome("race a car") => false
+// isPalindrome(" ") => true`,
+    language: "javascript",
+    testCases: [
+      { input: '"A man, a plan, a canal: Panama"', expectedOutput: "true" },
+      { input: '"race a car"', expectedOutput: "false" },
+      { input: '" "', expectedOutput: "true" }
+    ]
+  }
+]
 function AssessmentContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const track = searchParams.get("track") || "frontend"
   const level = searchParams.get("level") || "mid"
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  //const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
@@ -120,11 +121,35 @@ function AssessmentContent() {
   const [output, setOutput] = useState("");
 const [isRunning, setIsRunning] = useState(false);
 
+const [testResults, setTestResults] = useState<{passed: boolean, input: string, output: string, expected: string}[]>([]);
+
 const handleRunCode = async () => {
+  const activeQuestion = questions[currentQuestion];
+  const codeToExecute = answers[activeQuestion.id] || activeQuestion.starterCode;
+
+  if (!activeQuestion.testCases) return;
+
   setIsRunning(true);
+  const results = [];
+
   try {
-    const result = await executeCode(answers[question.id], 63); 
-    setOutput(atob(result.stdout || result.stderr || result.compile_output));
+    for (const tc of activeQuestion.testCases) {
+      // إرسال الكود مع المدخلات (stdin) لكل حالة اختبار
+      const result = await executeCode(codeToExecute ?? "", 63, tc.input); 
+      
+      const actualOutput = result.stdout ? atob(result.stdout).trim() : "";
+      const expectedOutput = tc.expectedOutput.trim();
+
+      results.push({
+        input: tc.input,
+        output: actualOutput,
+        expected: expectedOutput,
+        passed: actualOutput === expectedOutput
+      });
+    }
+    setTestResults(results);
+  } catch (error) {
+    setOutput("Automation Test Failed. Check API Key.");
   } finally {
     setIsRunning(false);
   }
@@ -132,65 +157,65 @@ const handleRunCode = async () => {
 
 
 
-  useEffect(() => {
-  // src/app/assessment/page.tsx (داخل fetchQuestions)
-const fetchQuestions = async () => {
-  try {
-    const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`);
-    if (!response.ok) throw new Error("Server error");
+//   useEffect(() => {
+//   // src/app/assessment/page.tsx (داخل fetchQuestions)
+// const fetchQuestions = async () => {
+//   try {
+//     const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`);
+//     if (!response.ok) throw new Error("Server error");
     
-    const data = await response.json();
-    console.log("Full Data from NestJS:", data); // تأكد من رؤية البيانات هنا
+//     const data = await response.json();
+//     console.log("Full Data from NestJS:", data); // تأكد من رؤية البيانات هنا
 
-    // تأكد أن المسارات داخل الكائن data صحيحة
-    const mcqs = data.assessment?.mcqs || [];
-    const openEnded = data.assessment?.openEnded || [];
-    const code = data.assessment?.code || data.assessment?.coding || []; // جربت الاسمين للاحتياط
+//     // تأكد أن المسارات داخل الكائن data صحيحة
+//     const mcqs = data.assessment?.mcqs || [];
+//     const openEnded = data.assessment?.openEnded || [];
+//     const code = data.assessment?.code || data.assessment?.coding || []; // جربت الاسمين للاحتياط
 
-    const formattedQuestions = [
-      ...mcqs.map((q: any, i: number) => ({
-        id: i + 1,
-        type: "mcq",
-        title: "Technical MCQ",
-        description: q.question,
-        options: q.options
-      })),
-      ...openEnded.map((q: any, i: number) => ({
-        id: i + 10,
-        type: "open-ended",
-        title: "Theoretical Question",
-        description: q.question
-      })),
-      ...code.map((q: any, i: number) => ({
-        id: i + 20,
-        type: "code",
-        title: q.title || "Coding Challenge",
-        description: q.problem || q.description,
-        starterCode: q.starterCode || q.starter_code,
-        language: "python"
-      }))
-    ];
+//     const formattedQuestions = [
+//       ...mcqs.map((q: any, i: number) => ({
+//         id: i + 1,
+//         type: "mcq",
+//         title: "Technical MCQ",
+//         description: q.question,
+//         options: q.options
+//       })),
+//       ...openEnded.map((q: any, i: number) => ({
+//         id: i + 10,
+//         type: "open-ended",
+//         title: "Theoretical Question",
+//         description: q.question
+//       })),
+//       ...code.map((q: any, i: number) => ({
+//         id: i + 20,
+//         type: "code",
+//         title: q.title || "Coding Challenge",
+//         description: q.problem || q.description,
+//         starterCode: q.starterCode || q.starter_code,
+//         language: "python"
+//       }))
+//     ];
 
-    console.log("Formatted Questions:", formattedQuestions);
-    setQuestions(formattedQuestions);
-  } catch (error) {
-    console.error("Failed to load questions", error);
-  } finally {
-    setLoading(false);
-  }
-};
+//     console.log("Formatted Questions:", formattedQuestions);
+//     setQuestions(formattedQuestions);
+//   } catch (error) {
+//     console.error("Failed to load questions", error);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-    fetchQuestions();
-  }, [track, level]);
+//     fetchQuestions();
+//   }, [track, level]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
-        <p className="text-teal-400 font-mono">Gemini ...</p>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
+  //       <p className="text-teal-400 font-mono">Gemini ...</p>
+  //     </div>
+  //   );
+  // }
 
   if (questions.length === 0) return <div>No questions found.</div>;
 
@@ -413,13 +438,8 @@ const fetchQuestions = async () => {
                     )}
                   </div>
                 )}
-       {/* أضف الزر والـ Output تحت الـ CodeEditor */}
-<Button onClick={handleRunCode} disabled={isRunning}>
-  {isRunning ? "Running..." : "Run Code"}
-</Button>
-<pre className="bg-black text-green-400 p-4 mt-2 rounded-md">
-  {output || "Output will appear here..."}
-</pre>
+
+
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-6 border-t border-border">
