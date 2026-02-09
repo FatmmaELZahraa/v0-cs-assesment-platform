@@ -52,19 +52,106 @@ async generateContent(prompt: string) {
     return this.generateContent(prompt);
   }
 
-  async generateFullAssessment(track: string, level: string, skills: string[]) {
+//   async generateFullAssessment(track: string, level: string, skills: string[]) {
+//   const prompt = `
+//     Generate a full technical assessment for a ${level} ${track} developer.
+//     Skills to focus on: ${skills.join(', ')}.
+    
+//     You MUST return ONLY a valid JSON object with this structure:
+//     {
+//       "mcqs": [{"question": "string", "options": ["a", "b", "c", "d"], "answer": "string"}],
+//       "openEnded": [{"question": "string", "hint": "string"}],
+//       "code": [{"title": "string", "problem": "string", "starterCode": "string"}]
+//     }
+//   `;
+//   return this.generateContent(prompt);
+// }
+
+// async generateFullAssessment(track: string, level: string, skills: string[]) {
+//   const prompt = `
+//     Generate a full technical assessment for a ${level} ${track} developer.
+//     Skills to focus on: ${skills.join(', ')}.
+    
+//     You MUST return ONLY a valid JSON object with this specific structure. 
+//     Do not add markdown formatting (like \`\`\`json). Just the raw JSON object.
+
+//     {
+//       "mcqs": [
+//         {
+//           "question": "string", 
+//           "options": ["a) ...", "b) ...", "c) ...", "d) ..."], 
+//           "answer": "string (the correct option, e.g., 'c')",
+//           "explanation": "string (brief explanation of why this answer is correct)"
+//         }
+//       ],
+//       "openEnded": [
+//         {
+//           "question": "string", 
+//           "modelAnswer": "string (a summary of key points expected in the answer)"
+//         }
+//       ],
+//       "code": [
+//         {
+//           "title": "string", 
+//           "problem": "string", 
+//           "starterCode": "string (function signature)",
+//           "solution": "string (the full correct code implementation)",
+//           "testCases": [
+//             { "input": "string (input arguments)", "expectedOutput": "string (return value)" },
+//             { "input": "string", "expectedOutput": "string" }
+//           ]
+//         }
+//       ]
+//     }
+//   `;
+  
+//   return this.generateContent(prompt);
+// }
+
+async generateFullAssessment(track: string, level: string, skills: string[]) {
   const prompt = `
     Generate a full technical assessment for a ${level} ${track} developer.
     Skills to focus on: ${skills.join(', ')}.
     
-    You MUST return ONLY a valid JSON object with this structure:
+    CRITICAL INSTRUCTIONS:
+    1. Return ONLY a valid JSON object. No Markdown code blocks (e.g., no \`\`\`json).
+    2. For the "code" section, the 'solution' must be a complete, working script that prints the result to stdout.
+    3. 'testCases' must be EXACT. The 'expectedOutput' must match exactly what the 'solution' prints (including quotes, spacing, and brackets).
+    4. If the coding problem requires processing a fixed dataset (no user input), set "input": "" and providing the expected print output.
+    
+    JSON Structure:
     {
-      "mcqs": [{"question": "string", "options": ["a", "b", "c", "d"], "answer": "string"}],
-      "openEnded": [{"question": "string", "hint": "string"}],
-      "code": [{"title": "string", "problem": "string", "starterCode": "string"}]
+      "mcqs": [
+        {
+          "question": "string", 
+          "options": ["a) ...", "b) ...", "c) ...", "d) ..."], 
+          "answer": "string (the correct option index or text)",
+          "explanation": "string (why this is correct)"
+        }
+      ],
+      "openEnded": [
+        {
+          "question": "string", 
+          "modelAnswer": "string (key points expected)"
+        }
+      ],
+      "code": [
+        {
+          "title": "string", 
+          "problem": "string (description)", 
+          "starterCode": "string (initial code for the user)",
+          "solution": "string (complete working solution that prints output)",
+          "testCases": [
+            { 
+              "input": "string (stdin input, or empty string if none)", 
+              "expectedOutput": "string (exact stdout output)" 
+            }
+          ]
+        }
+      ]
     }
   `;
-  // تأكد من استخدام موديل متاح مثل gemini-1.5-flash كبديل
+  
   return this.generateContent(prompt);
 }
 }

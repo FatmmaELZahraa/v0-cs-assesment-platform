@@ -4,7 +4,6 @@ import axios from 'axios';
 const RAPID_API_KEY = 'ab5aad1fbamsh2ae090f975516b9p1cb737jsn5eb1bd9f7f84';
 const RAPID_API_HOST = 'judge029.p.rapidapi.com';
 const BASE_URL = 'https://judge029.p.rapidapi.com/submissions';
-// دالة لتشفير النصوص التي تحتوي على أحرف خاصة بشكل آمن
 const safeBtoa = (str: string) => {
   try {
     return btoa(unescape(encodeURIComponent(str)));
