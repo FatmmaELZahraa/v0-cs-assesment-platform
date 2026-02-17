@@ -24,12 +24,12 @@ export class TechnicalService {
     const codePrompt = CODE_PROMPT(track, level, skills, language);
 
     // 3️⃣ Generate questions from LLM
-    const [mcq, essay, code] = await Promise.all([
-      this.llmService.generateMCQs(track, level, skills),
-      this.llmService.generateOpenEnded(track, level, skills),
-      this.llmService.generateCodeChallenges(track, level, skills),
-    ]);
+    // const [mcq, essay, code] = await Promise.all([
+    //   this.llmService.generateMCQs(track, level, skills),
+    //   this.llmService.generateOpenEnded(track, level, skills),
+    //   this.llmService.generateCodeChallenges(track, level, skills),
+    // ]);
 
-    return { mcq, essay, code };
+    // return { mcq, essay, code };
   }
 }

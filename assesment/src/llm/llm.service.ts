@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigService } from '@nestjs/config';
+import OpenAI from 'openai';
+
 
 @Injectable()
 export class LlmService {
@@ -9,149 +11,374 @@ export class LlmService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    this.genAI = new GoogleGenerativeAI("AIzaSyBcUFtK-8mYyC5_3NEDZYkBS_GBT61TT5g");
+    this.genAI = new GoogleGenerativeAI(apiKey || "AIzaSyAkKiKSGT_dt6atB96qsZDdLwC0GGdaTo0");
+
     this.model = this.genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash',
       generationConfig: { responseMimeType: 'application/json' }
     });
+   
   }
 
-async generateContent(prompt: string) {
+
+
+
+
+async generateContent(prompt: string): Promise<any> {
   try {
+    // FIX: Pass the prompt string directly. 
+    // The SDK handles converting this to the correct request structure automatically.
     const result = await this.model.generateContent(prompt);
+
     const response = await result.response;
-    return JSON.parse(response.text());
-  } catch (error) {
-    if (error.status === 429) {
-      console.warn("Quota exceeded, returning mock data...");
-      return {
-        mcqs: [{ question: "Sample: What is the primary use of Node.js?", options: ["Frontend", "Backend", "Styling", "Design"], answer: "Backend" }],
-        openEnded: [{ question: "Describe a complex problem you solved.", hint: "Focus on the architecture." }],
-        code: [{ title: "Fibonacci", problem: "Write a function for Fibonacci.", starterCode: "function fib(n) {}" }]
-      };
+    const text = response.text();
+
+    // Clean up potential Markdown code blocks (common with JSON responses)
+    // e.g., ```json { ... } ``` -> { ... }
+    const cleanText = text.replace(/```json|```/g, '').trim();
+
+    try {
+      return JSON.parse(cleanText);
+    } catch (jsonError) {
+      console.warn("Failed to parse JSON from AI, returning raw text.");
+      return cleanText;
     }
+
+  } catch (error) {
+    console.error("AI Generation Error:", error);
     throw error;
   }
 }
 
-  async generateMCQs(track: string, level: string, skills: string[]) {
-    const prompt = `Generate 5 MCQs for ${level} ${track}. Skills: ${skills.join(',')}. 
-    Return JSON array: [{"question": "text", "options": ["a","b","c","d"], "answer": "text"}]`;
-    return this.generateContent(prompt);
-  }
-
-  async generateOpenEnded(track: string, level: string, skills: string[]) {
-    const prompt = `Generate 3 open-ended questions for ${level} ${track}. Skills: ${skills.join(',')}. 
-    Return JSON array: [{"question": "text", "hint": "text"}]`;
-    return this.generateContent(prompt);
-  }
-
-  async generateCodeChallenges(track: string, level: string, skills: string[]) {
-    const prompt = `Generate 2 code challenges for ${level} ${track}. Skills: ${skills.join(',')}. 
-    Return JSON array: [{"title": "text", "problem": "text", "starterCode": "text"}]`;
-    return this.generateContent(prompt);
-  }
-
+//   // --- Generate full assessment ---
 //   async generateFullAssessment(track: string, level: string, skills: string[]) {
+//     const prompt = `
+// You are a senior technical interviewer.
+
+// Generate a 6-question professional technical assessment for a ${level} ${track} developer.
+
+// Skills: ${skills.join(", ")}
+
+// Requirements:
+// 1. MCQs (3 questions) - 4 options each, include correct answer + explanation
+// 2. Open-ended questions (2 questions) - include modelAnswer + keyPoints
+// 3. Coding challenge (1 problem) - real-world, description, examples, constraints, JS function template, 5+ test cases including hidden edge cases
+
+// Return ONLY valid JSON in this structure:
+
+// {
+//   "mcqs": [
+//     { "question": "", "options": ["", "", "", ""], "answer": "", "explanation": "" }
+//   ],
+//   "openEnded": [
+//     { "question": "", "modelAnswer": "", "keyPoints": [""] }
+//   ],
+//   "coding": {
+//     "title": "",
+//     "description": "",
+//     "examples": [],
+//     "constraints": [],
+//     "functionTemplate": "",
+//     "testCases": [
+//       { "input": "", "expectedOutput": "" }
+//     ]
+//   }
+// }
+
+// Do not include markdown or any text outside JSON.
+// `;
+//     return this.generateContent(prompt);
+//   }
+
+
+// async evaluateCodingWithAI(userCode: string, challenge: any) {
 //   const prompt = `
-//     Generate a full technical assessment for a ${level} ${track} developer.
-//     Skills to focus on: ${skills.join(', ')}.
+//     Analyze this code for the challenge: "${challenge.description}"
+//     User Code: ${userCode}
+//     Constraints: ${challenge.constraints.join(', ')}
     
-//     You MUST return ONLY a valid JSON object with this structure:
-//     {
-//       "mcqs": [{"question": "string", "options": ["a", "b", "c", "d"], "answer": "string"}],
-//       "openEnded": [{"question": "string", "hint": "string"}],
-//       "code": [{"title": "string", "problem": "string", "starterCode": "string"}]
-//     }
+//     Check for:
+//     1. Time/Space Complexity.
+//     2. Logic correctness.
+//     3. Edge case handling.
+
+//     Return JSON: { "score": 0-10, "feedback": "", "passed": boolean }
 //   `;
 //   return this.generateContent(prompt);
 // }
+//   // --- Evaluate open-ended answers ---
+//   async evaluateOpenEnded(userAnswer: string, question: string, keyPoints: string[]) {
+//     const prompt = `
+// You are an expert technical evaluator.
 
-// async generateFullAssessment(track: string, level: string, skills: string[]) {
-//   const prompt = `
-//     Generate a full technical assessment for a ${level} ${track} developer.
-//     Skills to focus on: ${skills.join(', ')}.
-    
-//     You MUST return ONLY a valid JSON object with this specific structure. 
-//     Do not add markdown formatting (like \`\`\`json). Just the raw JSON object.
+// Question:
+// ${question}
 
-//     {
-//       "mcqs": [
-//         {
-//           "question": "string", 
-//           "options": ["a) ...", "b) ...", "c) ...", "d) ..."], 
-//           "answer": "string (the correct option, e.g., 'c')",
-//           "explanation": "string (brief explanation of why this answer is correct)"
-//         }
-//       ],
-//       "openEnded": [
-//         {
-//           "question": "string", 
-//           "modelAnswer": "string (a summary of key points expected in the answer)"
-//         }
-//       ],
-//       "code": [
-//         {
-//           "title": "string", 
-//           "problem": "string", 
-//           "starterCode": "string (function signature)",
-//           "solution": "string (the full correct code implementation)",
-//           "testCases": [
-//             { "input": "string (input arguments)", "expectedOutput": "string (return value)" },
-//             { "input": "string", "expectedOutput": "string" }
-//           ]
-//         }
-//       ]
-//     }
-//   `;
-  
-//   return this.generateContent(prompt);
+// Expected key points:
+// ${keyPoints.join(", ")}
+
+// User answer:
+// "${userAnswer}"
+
+// Evaluate based on:
+// - Technical accuracy
+// - Completeness
+// - Clarity
+// - Coverage of key points
+// - Real-world understanding
+
+// Return JSON:
+// {
+//   "score": 0-10,
+//   "feedback": "",
+//   "missingPoints": [],
+//   "strengths": []
 // }
+// `;
 
+//     return this.generateContent(prompt);
+//   }
+
+//   // --- Evaluate entire assessment ---
+//   async evaluateFullAssessment(body: { originalAssessment: any; userAnswers: any }) {
+//     try {
+//       const { originalAssessment, userAnswers } = body;
+
+//       // MCQs
+//       const mcqResults = this.evaluateMCQs(userAnswers?.mcqs || [], originalAssessment?.mcqs || []);
+//       const correctMcqCount = mcqResults.filter(r => r.isCorrect).length;
+//       const mcqScore = (correctMcqCount / (originalAssessment.mcqs?.length || 1)) * 40;
+
+//       // Open-ended
+//       const openEndedResults = await Promise.all(
+//         (originalAssessment.openEnded || []).map((q, i) =>
+//           this.evaluateOpenEnded(userAnswers.openEnded?.[i] || "", q.question, q.keyPoints || [])
+//         )
+//       );
+//       const totalOpenPoints = openEndedResults.reduce((acc, curr) => acc + Number(curr.score || 0), 0);
+//       const openEndedScore = (totalOpenPoints / ((originalAssessment.openEnded?.length || 1) * 10)) * 30;
+
+//       // Coding
+//       const codingResults = await Promise.all(
+//         (originalAssessment.coding || []).map((challenge, i) =>
+//           this.evaluateCodingWithAI(userAnswers.coding?.[i] || "", challenge.testCases)
+//         )
+//       );
+//       const codingScore = codingResults.reduce((acc, c) => acc + Number(c.score || 0), 0) / (codingResults.length || 1);
+
+//       const totalScore = Math.round(mcqScore + openEndedScore + codingScore);
+//       // const overallGrade = totalScore > 85 ? "A" : totalScore > 70 ? "B" : totalScore > 50 ? "C" : "D";
+
+//       return {
+//         totalScore,
+//         overallGrade: totalScore >= 85 ? "A" : totalScore >= 70 ? "B" : totalScore >= 50 ? "C" : "F",
+//     overallFeedback: openEndedResults[0]?.feedback || "Great overall performance!",
+//         metadata: {
+//           mcqScore: Math.round(mcqScore),
+//           openEndedScore: Math.round(openEndedScore),
+//           codingScore: Math.round(codingScore)
+//         },
+//         details: { mcqResults, openEndedResults, codingResults }
+//       };
+//     } catch (error) {
+//       console.error("Evaluation Error:", error);
+//       throw error;
+//     }
+//   }
+// ------------------------
+// Generate Full Assessment
+// ------------------------
 async generateFullAssessment(track: string, level: string, skills: string[]) {
   const prompt = `
-    Generate a full technical assessment for a ${level} ${track} developer.
-    Skills to focus on: ${skills.join(', ')}.
-    
-    CRITICAL INSTRUCTIONS:
-    1. Return ONLY a valid JSON object. No Markdown code blocks (e.g., no \`\`\`json).
-    2. For the "code" section, the 'solution' must be a complete, working script that prints the result to stdout.
-    3. 'testCases' must be EXACT. The 'expectedOutput' must match exactly what the 'solution' prints (including quotes, spacing, and brackets).
-    4. If the coding problem requires processing a fixed dataset (no user input), set "input": "" and providing the expected print output.
-    
-    JSON Structure:
-    {
-      "mcqs": [
-        {
-          "question": "string", 
-          "options": ["a) ...", "b) ...", "c) ...", "d) ..."], 
-          "answer": "string (the correct option index or text)",
-          "explanation": "string (why this is correct)"
-        }
-      ],
-      "openEnded": [
-        {
-          "question": "string", 
-          "modelAnswer": "string (key points expected)"
-        }
-      ],
-      "code": [
-        {
-          "title": "string", 
-          "problem": "string (description)", 
-          "starterCode": "string (initial code for the user)",
-          "solution": "string (complete working solution that prints output)",
-          "testCases": [
-            { 
-              "input": "string (stdin input, or empty string if none)", 
-              "expectedOutput": "string (exact stdout output)" 
-            }
-          ]
-        }
-      ]
-    }
-  `;
-  
+You are a senior technical interviewer.
+
+Generate a 6-question professional technical assessment for a ${level} ${track} developer.
+
+Skills: ${skills.join(", ")}
+
+Requirements:
+1. MCQs (3 questions) - 4 options each, include correct answer + explanation
+2. Open-ended questions (2 questions) - include modelAnswer + keyPoints
+3. Coding challenge (1 problem) - real-world, description, examples, constraints, JS function template, 5+ test cases including hidden edge cases
+
+Return ONLY valid JSON in this structure:
+
+{
+  "mcqs": [
+    { "question": "", "options": ["", "", "", ""], "answer": "", "explanation": "" }
+  ],
+  "openEnded": [
+    { "question": "", "modelAnswer": "", "keyPoints": [""] }
+  ],
+  "coding": {
+    "title": "",
+    "description": "",
+    "examples": [],
+    "constraints": [],
+    "functionTemplate": "",
+    "testCases": [
+      { "input": "", "expectedOutput": "" }
+    ]
+  }
+}
+
+Do not include markdown or any text outside JSON.
+`;
+
+  const result = await this.generateContent(prompt);
+
+  // Ensure coding is always an array
+  if (result?.coding && !Array.isArray(result.coding)) {
+    result.coding = [result.coding];
+  }
+
+  return result;
+}
+
+// ------------------------
+// Coding Evaluation
+// ------------------------
+async evaluateCodingWithAI(userCode: string, challenge: any) {
+  const prompt = `
+Analyze this code for the challenge:
+
+Title: ${challenge.title}
+Description: ${challenge.description}
+Constraints: ${(challenge.constraints || []).join(', ')}
+
+User Code:
+${userCode}
+
+Check for:
+1. Time/Space Complexity
+2. Logic correctness
+3. Edge case handling
+4. Code quality
+
+Return JSON:
+{ "score": 0-10, "feedback": "", "passed": boolean }
+`;
+
   return this.generateContent(prompt);
 }
+
+// ------------------------
+// Open-ended Evaluation
+// ------------------------
+async evaluateOpenEnded(
+  userAnswer: string,
+  question: string,
+  keyPoints: string[]
+) {
+  const prompt = `
+You are an expert technical evaluator.
+
+Question:
+${question}
+
+Expected key points:
+${keyPoints.join(", ")}
+
+User answer:
+"${userAnswer}"
+
+Evaluate based on:
+- Technical accuracy
+- Completeness
+- Clarity
+- Coverage of key points
+- Real-world understanding
+
+Return JSON:
+{
+  "score": 0-10,
+  "feedback": "",
+  "missingPoints": [],
+  "strengths": []
 }
+`;
+
+  return this.generateContent(prompt);
+}
+
+
+  // --- MCQ evaluation helper ---
+evaluateMCQs(userAnswers: string[], referenceMcqs: any[]) {
+    return referenceMcqs.map((q, index) => {
+      const uAns = String(userAnswers[index] || "").trim().toLowerCase();
+      const rAns = String(q.answer || "").trim().toLowerCase();
+
+      const isCorrect =
+        uAns === rAns ||
+        (uAns.length === 1 && rAns.startsWith(uAns));
+
+      return {
+        question: q.question,
+        userAnswer: userAnswers[index],
+        correctAnswer: q.answer,
+        isCorrect,
+        explanation: q.explanation
+      };
+    });
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // --- Evaluate coding answers ---
+  // async evaluateCoding(userCode: string, testCases: any[]) {
+  //   let passed = 0;
+
+  //   for (const test of testCases) {
+  //     try {
+  //       const fullCode = `
+  //         ${userCode}
+  //         return solution(${test.input});
+  //       `;
+  //       const result = new Function(fullCode)();
+  //       if (JSON.stringify(result) === JSON.stringify(test.expectedOutput)) {
+  //         passed++;
+  //       }
+  //     } catch (e) {}
+  //   }
+
+  //   const score = (passed / testCases.length) * 100;
+
+  //   return { passed, total: testCases.length, score };
+  // }
+// Inside LlmService
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

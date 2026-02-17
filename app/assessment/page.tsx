@@ -11,10 +11,8 @@
 // import { Badge } from "@/components/ui/badge"
 // import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-react"
 // import { CodeEditor } from "@/components/code-editor"
-// // Make sure this path is correct for your project structure
+// // Make sure this path matches your project structure
 // import { executeCode } from "@/assesment/src/services/execution.service"
-
-
 
 // type QuestionType = "mcq" | "open-ended" | "code"
 
@@ -29,6 +27,14 @@
 //   testCases?: { input: string; expectedOutput: string }[]
 // }
 
+// const LANGUAGE_OPTIONS = [
+//   { id: 71, name: "Python (3.8.1)", value: "python" },
+//   { id: 63, name: "JavaScript (Node.js 12.14)", value: "javascript" },
+//   { id: 54, name: "C++ (GCC 9.2.0)", value: "cpp" },
+//   { id: 62, name: "Java (OpenJDK 13.0.1)", value: "java" },
+//   { id: 51, name: "C# (Mono 6.6.0)", value: "csharp" }
+// ]
+
 // function AssessmentContent() {
 //   const searchParams = useSearchParams()
 //   const router = useRouter()
@@ -36,68 +42,73 @@
 //   const level = searchParams.get("level") || "mid"
 
 //   // ------------------------------------------------------------------
-//   // 1. ALL HOOKS MUST BE DECLARED HERE (Before any return statements)
+//   // 1. STATE HOOKS
 //   // ------------------------------------------------------------------
 //   const [questions, setQuestions] = useState<Question[]>([])
 //   const [loading, setLoading] = useState(true)
 //   const [currentQuestion, setCurrentQuestion] = useState(0)
 //   const [answers, setAnswers] = useState<Record<number, string>>({})
-//   const [timeRemaining, setTimeRemaining] = useState(60 * 60) // 60 minutes
   
-//   // State for Code Execution
+//   const [languageMap, setLanguageMap] = useState<Record<number, number>>({})
+
+//   const [timeRemaining, setTimeRemaining] = useState(60 * 60) 
+  
+//   // Execution State
 //   const [isRunning, setIsRunning] = useState(false)
 //   const [testResults, setTestResults] = useState<{passed: boolean, input: string, output: string, expected: string}[]>([])
 //   const [executionError, setExecutionError] = useState("")
 
-//   // Hook: Fetch Questions
+//   // ------------------------------------------------------------------
+//   // 2. EFFECT HOOKS
+//   // ------------------------------------------------------------------
+
+//   useEffect(() => {
+//     setTestResults([]);
+//     setExecutionError("");
+//   }, [currentQuestion]);
+
 //   useEffect(() => {
 //     const fetchQuestions = async () => {
 //       try {
 //         setLoading(true)
-//         console.log(`Fetching questions for ${track} - ${level}...`)
-        
 //         const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`)
         
 //         if (!response.ok) throw new Error(`Server Error: ${response.status}`)
         
 //         const data = await response.json()
-//         console.log("Full Data from NestJS:", data)
-
-//         // Handle nested structure { assessment: { ... } }
 //         const assessment = data.assessment || {}
-//         const mcqs = assessment.mcqs || []
-//         const openEnded = assessment.openEnded || []
-//         // Handle 'coding' (backend) vs 'code' (frontend) mismatch
-//         const codingChallenges = assessment.coding || assessment.code || []
+        
+//         const rawMcqs = assessment.mcqs || []
+//         const rawOpen = assessment.openEnded || []
+//         const rawCode = assessment.code || assessment.coding || []
 
-//         const formattedQuestions: Question[] = [
-//           ...mcqs.map((q: any, i: number) => ({
-//             id: i + 1,
-//             type: "mcq" as QuestionType,
-//             title: "Technical MCQ",
-//             description: q.question,
-//             options: q.options
-//           })),
-//           ...openEnded.map((q: any, i: number) => ({
-//             id: i + 10,
-//             type: "open-ended" as QuestionType,
-//             title: "Theoretical Question",
-//             description: q.question
-//           })),
-//           ...codingChallenges.map((q: any, i: number) => ({
-//             id: i + 20,
-//             type: "code" as QuestionType,
-//             title: q.title || "Coding Challenge",
-//             description: q.problem || q.description,
-//             starterCode: q.starterCode || q.starter_code,
-//             language: "python", // Defaulting to Python based on your backend response
-//             // Add default test cases if backend doesn't send them
-//             testCases: q.testCases || [
-//               { input: "1", expectedOutput: "Test Case 1" },
-//               { input: "2", expectedOutput: "Test Case 2" }
-//             ]
-//           }))
+//         const combinedData = [
+//           ...rawMcqs.map((q: any) => ({ ...q, _type: 'mcq' })),
+//           ...rawOpen.map((q: any) => ({ ...q, _type: 'open-ended' })),
+//           ...rawCode.map((q: any) => ({ ...q, _type: 'code' }))
 //         ]
+
+//         const formattedQuestions: Question[] = combinedData.map((q: any, index: number) => {
+//           const type = q._type as QuestionType
+          
+//           let title = "Question"
+//           if (type === 'mcq') title = "Technical MCQ"
+//           else if (type === 'open-ended') title = "Theoretical Question"
+//           else if (type === 'code') title = q.title || "Coding Challenge"
+
+//           return {
+//             id: index + 1,
+//             type: type,
+//             title: title,
+//             description: q.question || q.problem || q.description || "",
+//             options: q.options,
+//             starterCode: q.starterCode || q.starter_code,
+//             language: "python", // Default hint
+//             testCases: (q.testCases && q.testCases.length > 0) 
+//               ? q.testCases 
+//               : [{ input: "", expectedOutput: "Your Output Here" }]
+//           }
+//         })
 
 //         setQuestions(formattedQuestions)
 //       } catch (error) {
@@ -110,7 +121,6 @@
 //     fetchQuestions()
 //   }, [track, level])
 
-//   // Hook: Timer
 //   useEffect(() => {
 //     const timer = setInterval(() => {
 //       setTimeRemaining((prev) => {
@@ -121,29 +131,31 @@
 //         return prev - 1
 //       })
 //     }, 1000)
-
 //     return () => clearInterval(timer)
 //   }, [])
 
 //   // ------------------------------------------------------------------
-//   // 2. HELPER FUNCTIONS
+//   // 3. HELPER FUNCTIONS
 //   // ------------------------------------------------------------------
 
-//   const formatTime = (seconds: number) => {
-//     const mins = Math.floor(seconds / 60)
-//     const secs = seconds % 60
-//     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-//   }
+  // const formatTime = (seconds: number) => {
+  //   const mins = Math.floor(seconds / 60)
+  //   const secs = seconds % 60
+  //   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  // }
 
 //   const handleAnswer = (value: string) => {
 //     if (!questions[currentQuestion]) return
 //     setAnswers((prev) => ({ ...prev, [questions[currentQuestion].id]: value }))
 //   }
 
+//   const handleLanguageChange = (questionId: number, langId: string) => {
+//     setLanguageMap((prev) => ({ ...prev, [questionId]: parseInt(langId) }))
+//   }
+
 //   const handleNext = () => {
 //     if (currentQuestion < questions.length - 1) {
 //       setCurrentQuestion((prev) => prev + 1)
-//       // Reset code execution state when changing questions
 //       setTestResults([])
 //       setExecutionError("")
 //     }
@@ -157,109 +169,204 @@
 //     }
 //   }
 
-//   const handleSubmit = () => {
-//     router.push("/results")
+// const handleSubmit = async () => {
+//   try {
+//     // 1. تصفية الأسئلة حسب النوع لضمان الترتيب الصحيح
+//     const mcqQuestions = questions.filter(q => q.type === 'mcq');
+//     const openEndedQuestions = questions.filter(q => q.type === 'open-ended');
+//     const codingQuestions = questions.filter(q => q.type === 'code');
+
+//     // 2. حفظ الأسئلة الأصلية (بالإجابات النموذجية) للمقارنة في السيرفر
+//     localStorage.setItem("current_assessment", JSON.stringify({
+//       mcqs: mcqQuestions,
+//       openEnded: openEndedQuestions,
+//       coding: codingQuestions
+//     }));
+
+//     // 3. تجميع إجابات المستخدم بدقة (المشكلة كانت هنا)
+//     const userAnswers = {
+//       // نستخدم خارطة الأسئلة لضمان جلب الإجابة الصحيحة لكل ID
+//       mcqs: mcqQuestions.map(q => answers[q.id] || ""),
+//       openEnded: openEndedQuestions.map(q => answers[q.id] || ""),
+//       coding: codingQuestions.map(q => answers[q.id] || q.starterCode || "")
+//     };
+
+//     // 4. حفظ إجابات المستخدم في localStorage
+//     localStorage.setItem("last_assessment_answers", JSON.stringify(userAnswers));
+
+//     console.log("✅ Data successfully prepared for evaluation:", userAnswers);
+
+//     // 5. الانتقال لصفحة النتائج
+//     router.push("/results");
+//   } catch (error) {
+//     console.error("❌ Error during submission:", error);
+//     alert("An error occurred while saving your answers. Please try again.");
 //   }
+// };
+//   // --- SOUND EFFECT HELPER ---
+//   const playFeedbackSound = (isSuccess: boolean) => {
+//     try {
+//       // Ensure these files exist in public/sounds/
+//       const soundPath = isSuccess ? "/sounds/sucess.mp3" : "/sounds/fail.mp3";
+//       const audio = new Audio(soundPath);
+//       audio.volume = 0.5;
+//       audio.play().catch(err => console.warn("Audio play blocked", err));
+//     } catch (e) {
+//       console.error("Audio error", e);
+//     }
+//   };
 
 //   const handleRunCode = async () => {
-//     const activeQuestion = questions[currentQuestion]
-//     const codeToExecute = answers[activeQuestion.id] || activeQuestion.starterCode
-    
-//     // Safety check
-//     if (!activeQuestion.testCases || !codeToExecute) return
+//     console.log("▶️ Run Code Clicked");
 
-//     setIsRunning(true)
-//     setTestResults([])
-//     setExecutionError("")
+//     const activeQuestion = questions[currentQuestion];
     
-//     const results = []
+//     if (!activeQuestion) {
+//       console.error("❌ No active question found");
+//       return;
+//     }
+
+//     const codeToExecute = answers[activeQuestion.id] || activeQuestion.starterCode;
+    
+//     if (!codeToExecute) {
+//       setExecutionError("Please write some code first.");
+//       playFeedbackSound(false); // Play fail sound if empty
+//       return;
+//     }
+
+//     if (!activeQuestion.testCases || activeQuestion.testCases.length === 0) {
+//       setExecutionError("No test cases available for this question.");
+//       playFeedbackSound(false); 
+//       return;
+//     }
+
+//     // Get selected language ID or default to Python (71)
+//     const selectedLangId = languageMap[activeQuestion.id] || 71;
+//     console.log(`Using Language ID: ${selectedLangId}`);
+
+//     setIsRunning(true);
+//     setTestResults([]);
+//     setExecutionError("");
+    
+//     const results = [];
 
 //     try {
 //       for (const tc of activeQuestion.testCases) {
-//         // Run code against the API
-//         // Note: Make sure executeCode points to your Next.js API route or handles the request correctly
-//         const result = await executeCode(codeToExecute, 71, tc.input) // 71 is Python, 63 is JS
         
-//         const actualOutput = result.stdout ? atob(result.stdout).trim() : ""
-//         const expectedOutput = tc.expectedOutput.trim()
+//         const result = await executeCode(codeToExecute, selectedLangId, tc.input); 
+        
+//         if (result.stderr) {
+//             const errorText = atob(result.stderr);
+//             throw new Error(`Runtime Error: ${errorText}`);
+//         }
+        
+//         if (result.compile_output) {
+//              const compileError = atob(result.compile_output);
+//              throw new Error(`Compilation Error: ${compileError}`);
+//         }
+
+//         const actualRaw = result.stdout ? atob(result.stdout).trim() : "";
+//         const expectedRaw = tc.expectedOutput ? tc.expectedOutput.trim() : "";
+
+//         let passed = false;
+//         try {
+//           // Try parsing JSON first for array/object comparison
+//           const actualParsed = JSON.parse(actualRaw);
+//           const expectedParsed = JSON.parse(expectedRaw);
+//           passed = JSON.stringify(actualParsed) === JSON.stringify(expectedParsed);
+//         } catch {
+//           // Fallback to strict string comparison
+//           passed = actualRaw === expectedRaw;
+//         }
 
 //         results.push({
 //           input: tc.input,
-//           output: actualOutput,
-//           expected: expectedOutput,
-//           passed: actualOutput === expectedOutput
-//         })
+//           output: actualRaw,
+//           expected: expectedRaw,
+//           passed
+//         });
 //       }
-//       setTestResults(results)
-//     } catch (error) {
-//       console.error("Execution error:", error)
-//       setExecutionError("Failed to execute code. Check your API connection.")
+      
+//       setTestResults(results);
+
+//       // --- CHECK ALL PASSED ---
+//       const allPassed = results.length > 0 && results.every(r => r.passed);
+//       playFeedbackSound(allPassed);
+
+//     } catch (error: any) {
+//       console.error("💥 Execution Failed:", error);
+//       setExecutionError(error.message || "Execution failed. Check connection.");
+//       playFeedbackSound(false); // Play fail sound on crash
 //     } finally {
-//       setIsRunning(false)
+//       setIsRunning(false);
+//     }
+//   };
+
+//   const getBadgeStyle = (type: QuestionType) => {
+//     switch (type) {
+//       case 'mcq': return "bg-blue-500/20 text-blue-400 border-blue-500/30"
+//       case 'open-ended': return "bg-purple-500/20 text-purple-400 border-purple-500/30"
+//       case 'code': return "bg-teal-500/20 text-teal-400 border-teal-500/30"
+//       default: return ""
 //     }
 //   }
 
-//   const getQuestionTypeBadge = (type: QuestionType) => {
-//     const variants: Record<QuestionType, { label: string; className: string }> = {
-//       mcq: { label: "Multiple Choice", className: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-//       "open-ended": { label: "Open Ended", className: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
-//       code: { label: "Code Challenge", className: "bg-teal-500/20 text-teal-400 border-teal-500/30" }
+//   const getBadgeLabel = (type: QuestionType) => {
+//     switch (type) {
+//       case 'mcq': return "Multiple Choice"
+//       case 'open-ended': return "Open Ended"
+//       case 'code': return "Code Challenge"
+//       default: return "Question"
 //     }
-//     return variants[type]
 //   }
 
 //   // ------------------------------------------------------------------
-//   // 3. RENDER LOGIC
+//   // 4. RENDER
 //   // ------------------------------------------------------------------
 
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
-//         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
-//         <p className="text-teal-400 font-mono">Generating Assessment...</p>
-//       </div>
-//     )
-//   }
-
-//   if (questions.length === 0) return <div className="p-8 text-center">No questions found. Please check backend connection.</div>
-
+//   if (loading) return <div className="p-10 text-center">Loading Assessment...</div>
+//   if (questions.length === 0) return <div className="p-10 text-center">No questions loaded.</div>
 //   const question = questions[currentQuestion]
+//   if (!question) return <div className="p-10 text-center text-red-500">Error: Question not found.</div>
+
 //   const progress = ((currentQuestion + 1) / questions.length) * 100
 //   const answeredCount = Object.keys(answers).length
-//   const badge = getQuestionTypeBadge(question.type)
+
+//   const currentLangId = languageMap[question.id] || 71;
+//   const currentLangObj = LANGUAGE_OPTIONS.find(l => l.id === currentLangId);
+//   const editorLanguage = currentLangObj ? currentLangObj.value : "python";
 
 //   return (
 //     <main className="min-h-screen bg-background">
-//       {/* Header */}
-//       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-//         <div className="max-w-6xl mx-auto px-4 py-4">
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center gap-4">
-//               <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
-//               <Badge variant="outline" className="capitalize">
-//                 {track.replace("-", " ")} - {level}
-//               </Badge>
-//             </div>
-//             <div className="flex items-center gap-6">
-//               <div className="flex items-center gap-2 text-muted-foreground">
-//                 <CheckCircle2 className="h-4 w-4 text-teal-500" />
-//                 <span className="text-sm">{answeredCount}/{questions.length} answered</span>
-//               </div>
-//               <div className="flex items-center gap-2 text-muted-foreground">
-//                 <Clock className="h-4 w-4" />
-//                 <span className="text-sm font-mono">{formatTime(timeRemaining)}</span>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="mt-4">
-//             <Progress value={progress} className="h-2" />
-//           </div>
-//         </div>
-//       </header>
+      //    <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      //   <div className="max-w-6xl mx-auto px-4 py-4">
+      //     <div className="flex items-center justify-between">
+      //       <div className="flex items-center gap-4">
+      //         <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
+      //         <Badge variant="outline" className="capitalize">
+      //           {track.replace("-", " ")} - {level}
+      //         </Badge>
+      //       </div>
+      //       <div className="flex items-center gap-6">
+      //         <div className="flex items-center gap-2 text-muted-foreground">
+      //           <CheckCircle2 className="h-4 w-4 text-teal-500" />
+      //           <span className="text-sm">{answeredCount}/{questions.length} answered</span>
+      //         </div>
+      //         <div className="flex items-center gap-2 text-muted-foreground">
+      //           <Clock className="h-4 w-4" />
+      //           <span className="text-sm font-mono">{formatTime(timeRemaining)}</span>
+      //         </div>
+      //       </div>
+      //     </div>
+      //     <div className="mt-4">
+      //       <Progress value={progress} className="h-2" />
+      //     </div>
+      //   </div>
+      // </header>
 
 //       <div className="max-w-6xl mx-auto px-4 py-8">
 //         <div className="flex gap-6">
-//           {/* Sidebar Navigation */}
+//           {/* Sidebar */}
 //           <aside className="w-64 shrink-0 hidden md:block">
 //             <Card className="sticky top-32">
 //               <CardHeader className="pb-3">
@@ -289,175 +396,103 @@
 //             </Card>
 //           </aside>
 
-//           {/* Main Question Area */}
+//           {/* Main Area */}
 //           <div className="flex-1 min-w-0">
 //             <Card>
 //               <CardHeader>
 //                 <div className="flex items-center justify-between">
-//                   <Badge variant="outline" className={badge.className}>
-//                     {badge.label}
-//                   </Badge>
-//                   <span className="text-sm text-muted-foreground">
-//                     Question {currentQuestion + 1} of {questions.length}
-//                   </span>
+//                   <Badge variant="outline" className={getBadgeStyle(question.type)}>{getBadgeLabel(question.type)}</Badge>
 //                 </div>
 //                 <CardTitle className="text-xl mt-3">{question.title}</CardTitle>
 //               </CardHeader>
 //               <CardContent className="space-y-6">
 //                 <p className="text-muted-foreground whitespace-pre-wrap">{question.description}</p>
 
-//                 {/* MCQ Options */}
+//                 {/* MCQ Section */}
 //                 {question.type === "mcq" && question.options && (
-//                   <RadioGroup
-//                     value={answers[question.id] || ""}
-//                     onValueChange={handleAnswer}
-//                     className="space-y-3"
-//                   >
-//                     {question.options.map((option, index) => (
-//                       <div
-//                         key={index}
-//                         onClick={() => handleAnswer(option)}
-//                         className={`
-//                           flex items-center space-x-3 rounded-lg border p-4 cursor-pointer transition-colors
-//                           ${answers[question.id] === option 
-//                             ? "border-teal-500 bg-teal-500/10" 
-//                             : "border-border hover:border-teal-500/50 hover:bg-muted/50"
-//                           }
-//                         `}
-//                       >
-//                         <RadioGroupItem value={option} id={`option-${index}`} />
-//                         <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-foreground">
-//                           {option}
-//                         </Label>
-//                       </div>
-//                     ))}
-//                   </RadioGroup>
+//                    <RadioGroup value={answers[question.id] || ""} onValueChange={handleAnswer}>
+//                       {question.options.map((option, idx) => (
+//                         <div key={idx} className="flex items-center space-x-3 rounded-lg border p-4">
+//                            <RadioGroupItem value={option} id={`opt-${idx}`} />
+//                            <Label htmlFor={`opt-${idx}`}>{option}</Label>
+//                         </div>
+//                       ))}
+//                    </RadioGroup>
 //                 )}
 
-//                 {/* Open-ended Text Area */}
+//                 {/* Open Ended Section */}
 //                 {question.type === "open-ended" && (
-//                   <div className="space-y-2">
-//                     <Label htmlFor="answer" className="text-muted-foreground">Your Answer</Label>
-//                     <Textarea
-//                       id="answer"
-//                       placeholder="Type your answer here..."
-//                       value={answers[question.id] || ""}
-//                       onChange={(e) => handleAnswer(e.target.value)}
-//                       className="min-h-[200px] resize-y"
+//                     <Textarea 
+//                         value={answers[question.id] || ""} 
+//                         onChange={(e) => handleAnswer(e.target.value)} 
+//                         className="min-h-[200px]"
 //                     />
-//                     <p className="text-xs text-muted-foreground text-right">
-//                       {(answers[question.id] || "").length} characters
-//                     </p>
-//                   </div>
 //                 )}
 
-//                 {/* Code Editor */}
+//                 {/* Code Section */}
 //                 {question.type === "code" && (
 //                   <div className="space-y-4">
+//                     {/* Language Selector Dropdown */}
+//                     <div className="flex justify-end">
+//                         <select 
+//                             className="bg-background border border-border text-sm rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none"
+//                             value={currentLangId}
+//                             onChange={(e) => handleLanguageChange(question.id, e.target.value)}
+//                         >
+//                             {LANGUAGE_OPTIONS.map((lang) => (
+//                                 <option key={lang.id} value={lang.id}>
+//                                     {lang.name}
+//                                 </option>
+//                             ))}
+//                         </select>
+//                     </div>
+
 //                     <CodeEditor
 //                       value={answers[question.id] || question.starterCode || ""}
 //                       onChange={handleAnswer}
-//                       language={question.language || "python"}
+//                       language={editorLanguage}
 //                     />
                     
-//                     {/* Run Code Toolbar */}
 //                     <div className="flex justify-end border-t border-border pt-4">
 //                        <Button 
 //                         onClick={handleRunCode} 
 //                         disabled={isRunning}
 //                         className="bg-teal-500 hover:bg-teal-600 text-black font-medium"
 //                       >
-//                         {isRunning ? (
-//                           <>
-//                             <Clock className="mr-2 h-4 w-4 animate-spin" />
-//                             Running...
-//                           </>
-//                         ) : (
-//                           <>
-//                             <Play className="mr-2 h-4 w-4 fill-current" />
-//                             Run Code
-//                           </>
-//                         )}
+//                         {isRunning ? <><Clock className="mr-2 h-4 w-4 animate-spin"/> Running...</> : <><Play className="mr-2 h-4 w-4 fill-current"/> Run Code</>}
 //                       </Button>
 //                     </div>
 
-//                     {/* Execution Results */}
+//                     {/* Test Results Display */}
 //                     {(executionError || testResults.length > 0) && (
 //                       <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
 //                         <Label className="text-muted-foreground">Test Results</Label>
-                        
-//                         {executionError && (
-//                           <div className="p-3 rounded-lg border border-red-500/50 bg-red-500/10 text-red-400 text-sm font-mono">
-//                            {executionError}
-//                           </div>
-//                         )}
-
+//                         {executionError && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm font-mono border border-red-500/50">{executionError}</div>}
 //                         <div className="space-y-2">
-//                           {testResults.map((res, idx) => (
-//                             <div 
-//                               key={idx} 
-//                               className={`
-//                                 flex flex-col gap-2 text-sm font-mono rounded-lg p-3 border
-//                                 ${res.passed 
-//                                   ? "bg-teal-500/10 border-teal-500/30" 
-//                                   : "bg-red-500/10 border-red-500/30"
-//                                 }
-//                               `}
-//                             >
-//                               <div className="flex items-center justify-between">
-//                                 <span className="text-muted-foreground">Test Case {idx + 1}</span>
-//                                 <Badge variant="outline" className={res.passed ? "border-teal-500 text-teal-400" : "border-red-500 text-red-400"}>
-//                                   {res.passed ? "Passed" : "Failed"}
-//                                 </Badge>
-//                               </div>
-//                               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mt-2">
-//                                 <span className="text-muted-foreground">Input:</span>
-//                                 <span className="text-foreground">{res.input}</span>
-//                                 <span className="text-muted-foreground">Expected:</span>
-//                                 <span className="text-teal-400">{res.expected}</span>
-//                                 {!res.passed && (
-//                                   <>
-//                                     <span className="text-muted-foreground">Actual:</span>
-//                                     <span className="text-red-400">{res.output}</span>
-//                                   </>
-//                                 )}
-//                               </div>
-//                             </div>
-//                           ))}
+//                             {testResults.map((res, idx) => (
+//                                 <div key={idx} className={`text-sm font-mono rounded-lg p-3 border ${res.passed ? "bg-teal-500/10 border-teal-500/30" : "bg-red-500/10 border-red-500/30"}`}>
+//                                     <div className="flex justify-between mb-2">
+//                                         <span>Test Case {idx + 1}</span>
+//                                         <Badge variant="outline" className={res.passed ? "text-teal-400 border-teal-500" : "text-red-400 border-red-500"}>{res.passed ? "Passed" : "Failed"}</Badge>
+//                                     </div>
+//                                     <div>Input: {res.input}</div>
+//                                     <div className="text-teal-400">Exp: {res.expected}</div>
+//                                     {!res.passed && <div className="text-red-400">Act: {res.output}</div>}
+//                                 </div>
+//                             ))}
 //                         </div>
 //                       </div>
 //                     )}
 //                   </div>
 //                 )}
 
-//                 {/* Navigation Buttons */}
+//                 {/* Footer Navigation */}
 //                 <div className="flex items-center justify-between pt-6 border-t border-border">
-//                   <Button
-//                     variant="outline"
-//                     onClick={handlePrevious}
-//                     disabled={currentQuestion === 0}
-//                     className="bg-transparent"
-//                   >
-//                     <ChevronLeft className="h-4 w-4 mr-2" />
-//                     Previous
-//                   </Button>
-                  
-//                   {currentQuestion === questions.length - 1 ? (
-//                     <Button
-//                       onClick={handleSubmit}
-//                       className="bg-teal-500 hover:bg-teal-600 text-black"
-//                     >
-//                       Submit Assessment
-//                     </Button>
-//                   ) : (
-//                     <Button
-//                       onClick={handleNext}
-//                       className="bg-teal-500 hover:bg-teal-600 text-black"
-//                     >
-//                       Next
-//                       <ChevronRight className="h-4 w-4 ml-2" />
-//                     </Button>
-//                   )}
+//                     <Button variant="outline" onClick={handlePrevious} disabled={currentQuestion === 0}><ChevronLeft className="mr-2 h-4 w-4"/> Previous</Button>
+//                     {currentQuestion === questions.length - 1 ? 
+//                         <Button onClick={handleSubmit} className="bg-teal-500 text-black">Submit</Button> : 
+//                         <Button onClick={handleNext} className="bg-teal-500 text-black">Next <ChevronRight className="ml-2 h-4 w-4"/></Button>
+//                     }
 //                 </div>
 //               </CardContent>
 //             </Card>
@@ -470,11 +505,7 @@
 
 // export default function AssessmentPage() {
 //   return (
-//     <Suspense fallback={
-//       <div className="min-h-screen flex items-center justify-center bg-background">
-//         <div className="text-muted-foreground">Loading assessment...</div>
-//       </div>
-//     }>
+//     <Suspense fallback={<div>Loading...</div>}>
 //       <AssessmentContent />
 //     </Suspense>
 //   )
@@ -482,553 +513,361 @@
 
 
 
-"use client"
 
-import { useSearchParams, useRouter } from "next/navigation"
-import { useState, useEffect, Suspense } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-react"
-import { CodeEditor } from "@/components/code-editor"
-// Ensure this path matches your project structure exactly
-import { executeCode } from "@/assesment/src/services/execution.service"
+"use client";
 
-type QuestionType = "mcq" | "open-ended" | "code"
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-react";
+import { CodeEditor } from "@/components/code-editor";
+// Make sure this path matches your project structure
+import { executeCode } from "@/assesment/src/services/execution.service";
+
+type QuestionType = "mcq" | "open-ended" | "code";
 
 interface Question {
-  id: number
-  type: QuestionType
-  title: string
-  description: string
-  options?: string[]
-  starterCode?: string
-  language?: string
-  testCases?: { input: string; expectedOutput: string }[]
+  id: number;
+  type: QuestionType;
+  title: string;
+  description: string;
+  options?: string[];
+  starterCode?: string;
+  testCases?: { input: string; expectedOutput: string }[];
 }
 
+const LANGUAGE_OPTIONS = [
+  { id: 71, name: "Python (3.8.1)", value: "python" },
+  { id: 63, name: "JavaScript (Node.js 12.14)", value: "javascript" },
+];
+
 function AssessmentContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const track = searchParams.get("track") || "frontend"
-  const level = searchParams.get("level") || "mid"
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const track = searchParams.get("track") || "frontend";
+  const level = searchParams.get("level") || "mid";
 
-  // ------------------------------------------------------------------
-  // 1. STATE HOOKS
-  // ------------------------------------------------------------------
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState(true)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [timeRemaining, setTimeRemaining] = useState(60 * 60) // 60 minutes
-  
-  // Execution State
-  const [isRunning, setIsRunning] = useState(false)
-  const [testResults, setTestResults] = useState<{passed: boolean, input: string, output: string, expected: string}[]>([])
-  const [executionError, setExecutionError] = useState("")
+  // State Hooks
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [languageMap, setLanguageMap] = useState<Record<number, number>>({});
+  const [timeRemaining, setTimeRemaining] = useState(60 * 60);
+  const [isRunning, setIsRunning] = useState(false);
+  const [testResults, setTestResults] = useState<any[]>([]);
+  const [executionError, setExecutionError] = useState("");
 
-  // ------------------------------------------------------------------
-  // 2. EFFECT HOOKS
-  // ------------------------------------------------------------------
-  
-  // Fetch Questions
- // Hook 1: Fetch Questions
+  // Fetch Questions from Backend
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        setLoading(true)
-        // Fetch from your NestJS backend
-        const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`)
+        setLoading(true);
+        const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`);
+        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
         
-        if (!response.ok) throw new Error(`Server Error: ${response.status}`)
+        const data = await response.json();
+        const assessment = data.assessment || {};
+
+        const rawMcqs = assessment.mcqs || [];
+        const rawOpen = assessment.openEnded || [];
         
-        const data = await response.json()
-        const assessment = data.assessment || {}
-        
-        // 1. Gather raw data
-        const rawMcqs = assessment.mcqs || []
-        const rawOpen = assessment.openEnded || []
-        const rawCode = assessment.code || assessment.coding || [] // Handle both key names
+        // Handle coding challenge (Wrap object in array if needed)
+        const rawCode = Array.isArray(assessment.coding) 
+          ? assessment.coding 
+          : (assessment.coding ? [assessment.coding] : []);
 
-        // 2. Merge data
-        const combinedData = [
-          ...rawMcqs.map((q: any) => ({ ...q, _type: 'mcq' })),
-          ...rawOpen.map((q: any) => ({ ...q, _type: 'open-ended' })),
-          ...rawCode.map((q: any) => ({ ...q, _type: 'code' }))
-        ]
+        const formatted: Question[] = [
+          ...rawMcqs.map((q: any, i: number) => ({
+            id: i + 1,
+            type: "mcq" as const,
+            title: "Technical MCQ",
+            description: q.question,
+            options: q.options,
+          })),
+          ...rawOpen.map((q: any, i: number) => ({
+            id: rawMcqs.length + i + 1,
+            type: "open-ended" as const,
+            title: "Theoretical Question",
+            description: q.question,
+          })),
+          ...rawCode.map((q: any, i: number) => ({
+            id: rawMcqs.length + rawOpen.length + i + 1,
+            type: "code" as const,
+            title: q.title || "Coding Challenge",
+            description: q.description,
+            starterCode: q.functionTemplate || "",
+            testCases: q.testCases || [],
+          }))
+        ];
 
-        // 3. Map to Question interface
-        const formattedQuestions: Question[] = combinedData.map((q: any, index: number) => {
-          const type = q._type as QuestionType
-          
-          let title = "Question"
-          if (type === 'mcq') title = "Technical MCQ"
-          else if (type === 'open-ended') title = "Theoretical Question"
-          else if (type === 'code') title = q.title || "Coding Challenge"
-
-          return {
-       id: index + 1,
-    type: type,
-    title: title,
-    description: q.question || q.problem || q.description || "",
-    options: q.options,
-    starterCode: q.starterCode || q.starter_code,
-    language: "python",
-    
-    // 👇 UPDATE THIS SECTION 👇
-    // If API gives test cases, use them.
-    // If NOT, provide a generic "Dummy" case so the code can still run.
-    testCases: (q.testCases && q.testCases.length > 0) 
-      ? q.testCases 
-      : [
-          { 
-            input: "", // Empty input (works for simple print scripts)
-            expectedOutput: "Your Output Here" // Placeholder
-          }
-        ]
-          }
-        })
-
-        setQuestions(formattedQuestions)
+        setQuestions(formatted);
       } catch (error) {
-        console.error("Failed to load questions", error)
+        console.error("Failed to load assessment", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    fetchQuestions();
+  }, [track, level]);
 
-    fetchQuestions()
-  }, [track, level])
-  // Timer
+  // Timer logic
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 0) {
-          clearInterval(timer)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
+    const timer = setInterval(() => setTimeRemaining(p => (p <= 0 ? 0 : p - 1)), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  // ------------------------------------------------------------------
-  // 3. HELPER FUNCTIONS
-  // ------------------------------------------------------------------
+  // Safety Guards for "Cannot read properties of undefined"
+  if (loading) return <div className="flex justify-center items-center min-h-screen">Initializing Assessment...</div>;
+  if (questions.length === 0) return <div className="flex justify-center items-center min-h-screen">No questions found.</div>;
+  
+  const question = questions[currentQuestion];
+  if (!question) return <div className="flex justify-center items-center min-h-screen">Loading question...</div>;
 
-  // This was missing in the previous code
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const answeredCount = Object.keys(answers).length;
 
+  // Helper Functions
   const handleAnswer = (value: string) => {
-    if (!questions[currentQuestion]) return
-    setAnswers((prev) => ({ ...prev, [questions[currentQuestion].id]: value }))
-  }
+    setAnswers(prev => ({ ...prev, [question.id]: value }));
+  };
 
-  const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1)
-      setTestResults([])
-      setExecutionError("")
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1)
-      setTestResults([])
-      setExecutionError("")
-    }
-  }
-
-  const handleSubmit = () => {
-    router.push("/results")
-  }
-
-  // const handleRunCode = async () => {
-  //   const activeQuestion = questions[currentQuestion]
-  //   if (!activeQuestion) return
-    
-  //   const codeToExecute = answers[activeQuestion.id] || activeQuestion.starterCode
-  //   if (!activeQuestion.testCases || !codeToExecute) return
-
-  //   setIsRunning(true)
-  //   setTestResults([])
-  //   setExecutionError("")
-    
-  //   const results = []
-
-  //   try {
-  //     for (const tc of activeQuestion.testCases) {
-  //       // Run code (71 = Python, 63 = JS)
-  //       const result = await executeCode(codeToExecute, 71, tc.input) 
-        
-  //       const actualOutput = result.stdout ? atob(result.stdout).trim() : ""
-  //       const expectedOutput = tc.expectedOutput.trim()
-
-  //       results.push({
-  //         input: tc.input,
-  //         output: actualOutput,
-  //         expected: expectedOutput,
-  //         passed: actualOutput === expectedOutput
-  //       })
-  //     }
-  //     setTestResults(results)
-  //   } catch (error) {
-  //     console.error(error)
-  //     setExecutionError("Execution failed. Check connection.")
-  //   } finally {
-  //     setIsRunning(false)
-  //   }
-  // }
   const handleRunCode = async () => {
-    console.log("▶️ Run Code Clicked");
-
-    const activeQuestion = questions[currentQuestion];
-    
-    // 1. Check Question
-    if (!activeQuestion) {
-      console.error("❌ No active question found");
-      return;
-    }
-
-    // 2. Check Code
-    const codeToExecute = answers[activeQuestion.id] || activeQuestion.starterCode;
-    console.log("📝 Code to execute:", codeToExecute ? "Found" : "Missing");
-    
-    if (!codeToExecute) {
-      setExecutionError("Please write some code first.");
-      return;
-    }
-
-    // 3. Check Test Cases (The most common cause of failure)
-    console.log("🧪 Test Cases:", activeQuestion.testCases);
-    
-    if (!activeQuestion.testCases || activeQuestion.testCases.length === 0) {
-      console.error("❌ No test cases found for this question.");
-      setExecutionError("No test cases available for this question. Try regenerating the assessment.");
-      return;
-    }
-
+    if (question.type !== 'code') return;
     setIsRunning(true);
-    setTestResults([]);
     setExecutionError("");
-    
-    const results = [];
-
     try {
-      console.log("🚀 Starting Execution...");
-      for (const tc of activeQuestion.testCases) {
-        console.log(`Running test case: Input='${tc.input}'`);
-        
-        // Ensure executeCode is imported correctly!
-        // 71 is Python, 63 is JS
-        const result = await executeCode(codeToExecute, 71, tc.input); 
-        console.log("Raw API Result:", result);
+      const code = answers[question.id] || question.starterCode || "";
+      const langId = languageMap[question.id] || 71;
+      const results = [];
 
-        // Handle stderr (Runtime Errors)
-        if (result.stderr) {
-            const errorText = atob(result.stderr);
-            throw new Error(`Runtime Error: ${errorText}`);
-        }
-        
-        // Handle compile_output (Syntax Errors)
-        if (result.compile_output) {
-             const compileError = atob(result.compile_output);
-             throw new Error(`Compilation Error: ${compileError}`);
-        }
-
-        const actualOutput = result.stdout ? atob(result.stdout).trim() : "";
-        const expectedOutput = tc.expectedOutput ? tc.expectedOutput.trim() : "";
-
-        results.push({
-          input: tc.input,
-          output: actualOutput,
-          expected: expectedOutput,
-          passed: actualOutput === expectedOutput
-        });
+      for (const tc of (question.testCases || [])) {
+        const res = await executeCode(code, langId, tc.input);
+        const actual = res.stdout ? atob(res.stdout).trim() : "";
+        const expected = tc.expectedOutput.trim();
+        results.push({ input: tc.input, output: actual, expected, passed: actual === expected });
       }
-      
-      console.log("✅ Execution Complete. Results:", results);
       setTestResults(results);
-
-    } catch (error: any) {
-      console.error("💥 Execution Failed:", error);
-      setExecutionError(error.message || "Execution failed. Check connection.");
+    } catch (err: any) {
+      setExecutionError(err.message || "Execution Error");
     } finally {
       setIsRunning(false);
     }
   };
 
-  const getBadgeStyle = (type: QuestionType) => {
-    switch (type) {
-      case 'mcq': return "bg-blue-500/20 text-blue-400 border-blue-500/30"
-      case 'open-ended': return "bg-purple-500/20 text-purple-400 border-purple-500/30"
-      case 'code': return "bg-teal-500/20 text-teal-400 border-teal-500/30"
-      default: return ""
-    }
+  // const handleSubmit = async () => {
+  //   try {
+  //     const mcqs = questions.filter(q => q.type === 'mcq');
+  //     const openEnded = questions.filter(q => q.type === 'open-ended');
+  //     const coding = questions.filter(q => q.type === 'code');
+
+  //     localStorage.setItem("current_assessment", JSON.stringify({
+  //       mcqs: mcqs.map(q => ({ question: q.description, options: q.options })),
+  //       openEnded: openEnded.map(q => ({ question: q.description })),
+  //       coding: coding.map(q => ({ title: q.title, description: q.description, testCases: q.testCases }))
+  //     }));
+
+  //     localStorage.setItem("last_assessment_answers", JSON.stringify({
+  //       mcqs: mcqs.map(q => answers[q.id] || ""),
+  //       openEnded: openEnded.map(q => answers[q.id] || ""),
+  //       coding: coding.map(q => answers[q.id] || q.starterCode || "")
+  //     }));
+
+  //     router.push("/results");
+  //   } catch (e) {
+  //     alert("Error saving assessment.");
+  //   }
+  // };
+const handleSubmit = async () => {
+  try {
+    // 1. تصفية الأسئلة حسب النوع
+    const mcqs = questions.filter(q => q.type === 'mcq');
+    const openEnded = questions.filter(q => q.type === 'open-ended');
+    const coding = questions.filter(q => q.type === 'code');
+
+   
+    localStorage.setItem("current_assessment", JSON.stringify({
+      mcqs: mcqs.map(q => ({ 
+        question: q.description, 
+        options: q.options,
+        answer: (q as any).answer, // تأكدي من أن الحقل 'answer' موجود في الكائن الأصلي
+        explanation: (q as any).explanation 
+
+    
+      })),
+      openEnded: openEnded.map(q => ({ 
+        question: q.description,
+        modelAnswer: (q as any).modelAnswer // ضروري لتقييم Gemini
+      })),
+      coding: coding.map(q => ({ 
+        title: q.title, 
+        description: q.description, 
+        testCases: q.testCases,
+        solution: (q as any).solution // ضروري للتقييم البرمجي
+      }))
+    }));
+
+    // 3. تجميع إجابات المستخدم
+    const userAnswers = {
+      mcqs: mcqs.map(q => answers[q.id] || ""),
+      openEnded: openEnded.map(q => answers[q.id] || ""),
+      coding: coding.map(q => answers[q.id] || q.starterCode || "")
+    };
+
+    localStorage.setItem("last_assessment_answers", JSON.stringify(userAnswers));
+
+    console.log("🚀 Submitting to results page...");
+    router.push("/results");
+  } catch (e) {
+    console.error("Submission Error:", e);
+    alert("Error saving assessment. Please try again.");
   }
-
-  const getBadgeLabel = (type: QuestionType) => {
-    switch (type) {
-      case 'mcq': return "Multiple Choice"
-      case 'open-ended': return "Open Ended"
-      case 'code': return "Code Challenge"
-      default: return "Question"
-    }
+};
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
-
-  // ------------------------------------------------------------------
-  // 4. RENDER
-  // ------------------------------------------------------------------
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
-        <p className="text-teal-400 font-mono">Generating Assessment...</p>
-      </div>
-    )
-  }
-
-  if (questions.length === 0) return <div className="p-10 text-center">No questions loaded.</div>
-
-  const question = questions[currentQuestion]
-  if (!question) return <div className="p-10 text-center text-red-500">Error: Question not found.</div>
-
-  const progress = ((currentQuestion + 1) / questions.length) * 100
-  const answeredCount = Object.keys(answers).length
-
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
-              <Badge variant="outline" className="capitalize">
-                {track.replace("-", " ")} - {level}
-              </Badge>
+       {/* Header */}
+       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+         <div className="max-w-6xl mx-auto px-4 py-4">
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-4">
+               <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
+               <Badge variant="outline" className="capitalize">
+                 {track.replace("-", " ")} - {level}
+               </Badge>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-teal-500" />
-                <span className="text-sm">{answeredCount}/{questions.length} answered</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
+             <div className="flex items-center gap-6">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                 <CheckCircle2 className="h-4 w-4 text-teal-500" />
+                 <span className="text-sm">{answeredCount}/{questions.length} answered</span>
+               </div>
+               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-mono">{formatTime(timeRemaining)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Progress value={progress} className="h-2" />
-          </div>
-        </div>
+               </div>
+             </div>
+           </div>
+           <div className="mt-4">
+             <Progress value={progress} className="h-2" />
+           </div>
+         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex gap-6">
-          {/* Sidebar */}
-          <aside className="w-64 shrink-0 hidden md:block">
-            <Card className="sticky top-32">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Questions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  {questions.map((q, index) => (
-                    <button
-                      key={q.id}
-                      onClick={() => setCurrentQuestion(index)}
-                      className={`
-                        h-10 w-full rounded-md text-sm font-medium transition-colors
-                        ${currentQuestion === index 
-                          ? "bg-teal-500 text-black" 
-                          : answers[q.id] 
-                            ? "bg-teal-500/20 text-teal-400 border border-teal-500/30" 
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        }
-                      `}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
 
-          {/* Main Area */}
-          <div className="flex-1 min-w-0">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className={getBadgeStyle(question.type)}>
-                    {getBadgeLabel(question.type)}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Question {currentQuestion + 1} of {questions.length}
-                  </span>
-                </div>
-                <CardTitle className="text-xl mt-3">{question.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-muted-foreground whitespace-pre-wrap">{question.description}</p>
+      <div className="max-w-6xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
+        <aside className="hidden md:block">
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Questions</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-4 gap-2">
+              {questions.map((_, i) => (
+                <Button 
+                  key={i} 
+                  size="sm"
+                  variant={currentQuestion === i ? "default" : answers[questions[i].id] ? "outline" : "ghost"}
+                  onClick={() => setCurrentQuestion(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </aside>
 
-                {/* MCQ */}
-                {question.type === "mcq" && question.options && (
-                  <RadioGroup
-                    value={answers[question.id] || ""}
-                    onValueChange={handleAnswer}
-                    className="space-y-3"
-                  >
-                    {question.options.map((option, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleAnswer(option)}
-                        className={`
-                          flex items-center space-x-3 rounded-lg border p-4 cursor-pointer transition-colors
-                          ${answers[question.id] === option 
-                            ? "border-teal-500 bg-teal-500/10" 
-                            : "border-border hover:border-teal-500/50 hover:bg-muted/50"
-                          }
-                        `}
-                      >
-                        <RadioGroupItem value={option} id={`option-${index}`} />
-                        <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-foreground">
-                          {option}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                )}
+        <section>
+          <Card>
+            <CardHeader>
+              <Badge className="w-fit mb-2">{question.type.toUpperCase()}</Badge>
+              <CardTitle>{question.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">{question.description}</p>
 
-                {/* Open Ended */}
-                {question.type === "open-ended" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="answer" className="text-muted-foreground">Your Answer</Label>
-                    <Textarea
-                      id="answer"
-                      placeholder="Type your answer here..."
-                      value={answers[question.id] || ""}
-                      onChange={(e) => handleAnswer(e.target.value)}
-                      className="min-h-[200px] resize-y"
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {(answers[question.id] || "").length} characters
-                    </p>
-                  </div>
-                )}
-
-                {/* Code */}
-                {question.type === "code" && (
-                  <div className="space-y-4">
-                    <CodeEditor
-                      value={answers[question.id] || question.starterCode || ""}
-                      onChange={handleAnswer}
-                      language={question.language || "python"}
-                    />
-                    <div className="flex justify-end border-t border-border pt-4">
-                       <Button 
-                        onClick={handleRunCode} 
-                        disabled={isRunning}
-                        className="bg-teal-500 hover:bg-teal-600 text-black font-medium"
-                      >
-                        {isRunning ? (
-                          <>
-                            <Clock className="mr-2 h-4 w-4 animate-spin" />
-                            Running...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="mr-2 h-4 w-4 fill-current" />
-                            Run Code
-                          </>
-                        )}
-                      </Button>
+              {question.type === "mcq" && (
+                <RadioGroup value={answers[question.id]} onValueChange={handleAnswer} className="gap-3">
+                  {question.options?.map((opt, i) => (
+                    <div key={i} className="flex items-center space-x-2 border p-4 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
+                      <RadioGroupItem value={opt} id={`q-${i}`} />
+                      <Label htmlFor={`q-${i}`} className="flex-1 cursor-pointer">{opt}</Label>
                     </div>
+                  ))}
+                </RadioGroup>
+              )}
 
-                    {(executionError || testResults.length > 0) && (
-                      <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
-                        <Label className="text-muted-foreground">Test Results</Label>
-                        {executionError && (
-                          <div className="p-3 rounded-lg border border-red-500/50 bg-red-500/10 text-red-400 text-sm font-mono">
-                           {executionError}
-                          </div>
-                        )}
-                        <div className="space-y-2">
-                          {testResults.map((res, idx) => (
-                            <div key={idx} className={`flex flex-col gap-2 text-sm font-mono rounded-lg p-3 border ${res.passed ? "bg-teal-500/10 border-teal-500/30" : "bg-red-500/10 border-red-500/30"}`}>
-                              <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Test Case {idx + 1}</span>
-                                <Badge variant="outline" className={res.passed ? "border-teal-500 text-teal-400" : "border-red-500 text-red-400"}>
-                                  {res.passed ? "Passed" : "Failed"}
-                                </Badge>
-                              </div>
-                              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mt-2">
-                                <span className="text-muted-foreground">Input:</span>
-                                <span className="text-foreground">{res.input}</span>
-                                <span className="text-muted-foreground">Expected:</span>
-                                <span className="text-teal-400">{res.expected}</span>
-                                {!res.passed && (
-                                  <>
-                                    <span className="text-muted-foreground">Actual:</span>
-                                    <span className="text-red-400">{res.output}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              {question.type === "open-ended" && (
+                <Textarea 
+                  placeholder="Type your explanation here..."
+                  value={answers[question.id] || ""}
+                  onChange={(e) => handleAnswer(e.target.value)}
+                  className="min-h-[250px] font-sans"
+                />
+              )}
+
+              {question.type === "code" && (
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <select 
+                      className="bg-background border rounded px-2 py-1 text-sm"
+                      onChange={(e) => setLanguageMap(prev => ({...prev, [question.id]: parseInt(e.target.value)}))}
+                    >
+                      {LANGUAGE_OPTIONS.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                    </select>
                   </div>
-                )}
-
-                {/* Footer Navigation */}
-                <div className="flex items-center justify-between pt-6 border-t border-border">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentQuestion === 0}
-                    className="bg-transparent"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
-                  </Button>
-                  
-                  {currentQuestion === questions.length - 1 ? (
-                    <Button onClick={handleSubmit} className="bg-teal-500 hover:bg-teal-600 text-black">
-                      Submit Assessment
+                  <CodeEditor 
+                    value={answers[question.id] || question.starterCode || ""}
+                    onChange={handleAnswer}
+                    language={languageMap[question.id] === 63 ? "javascript" : "python"}
+                  />
+                  <div className="flex justify-between items-center">
+                    <Button onClick={handleRunCode} disabled={isRunning} variant="secondary">
+                      {isRunning ? "Running..." : "Run Tests"}
                     </Button>
-                  ) : (
-                    <Button onClick={handleNext} className="bg-teal-500 hover:bg-teal-600 text-black">
-                      Next <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
+                  </div>
+                  {testResults.length > 0 && (
+                    <div className="bg-black/5 p-4 rounded-md font-mono text-xs space-y-1 border">
+                      {testResults.map((r, i) => (
+                        <div key={i} className={r.passed ? "text-green-600" : "text-red-600"}>
+                          Test {i+1}: {r.passed ? "✓ Passed" : `✗ Failed (Expected ${r.expected}, got ${r.output})`}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              )}
+
+              <div className="flex justify-between mt-8 pt-6 border-t">
+                <Button variant="outline" onClick={() => setCurrentQuestion(q => q - 1)} disabled={currentQuestion === 0}>
+                  <ChevronLeft className="mr-2 w-4 h-4" /> Previous
+                </Button>
+                {currentQuestion === questions.length - 1 ? (
+                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">Finish & Submit</Button>
+                ) : (
+                  <Button onClick={() => setCurrentQuestion(q => q + 1)}>
+                    Next <ChevronRight className="ml-2 w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </main>
-  )
+  );
 }
 
 export default function AssessmentPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Assessment...</div>}>
       <AssessmentContent />
     </Suspense>
-  )
+  );
 }
