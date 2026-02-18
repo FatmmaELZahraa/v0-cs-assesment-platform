@@ -9,6 +9,7 @@ export class LlmService {
   private genAI: GoogleGenerativeAI;
   private model: any;
 
+
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     this.genAI = new GoogleGenerativeAI(apiKey || "AIzaSyAkKiKSGT_dt6atB96qsZDdLwC0GGdaTo0");
@@ -303,23 +304,24 @@ Return JSON:
 
 
   // --- MCQ evaluation helper ---
-evaluateMCQs(userAnswers: string[], referenceMcqs: any[]) {
-    return referenceMcqs.map((q, index) => {
-      const uAns = String(userAnswers[index] || "").trim().toLowerCase();
-      const rAns = String(q.answer || "").trim().toLowerCase();
+private evaluateMCQs(userAnswers: any[], referenceMcqs: any[]) {
+  return referenceMcqs.map((q, index) => {
+    const uAns = String(userAnswers[index] || "").trim().toLowerCase();
+    const rAns = String(q.answer || "").trim().toLowerCase();
 
-      const isCorrect =
-        uAns === rAns ||
-        (uAns.length === 1 && rAns.startsWith(uAns));
+    // مطابقة ذكية: إذا كان المستخدم أرسل الحرف (A) أو النص كاملاً
+    const isCorrect = uAns === rAns || 
+                      rAns.startsWith(uAns) || 
+                      uAns.includes(rAns);
 
-      return {
-        question: q.question,
-        userAnswer: userAnswers[index],
-        correctAnswer: q.answer,
-        isCorrect,
-        explanation: q.explanation
-      };
-    });
+    return {
+      question: q.question,
+      userAnswer: userAnswers[index],
+      correctAnswer: q.answer,
+      isCorrect,
+      explanation: q.explanation,
+    };
+  });
 }
 }
 

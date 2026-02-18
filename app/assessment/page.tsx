@@ -590,6 +590,8 @@ function AssessmentContent() {
             title: "Technical MCQ",
             description: q.question,
             options: q.options,
+            answer: q.answer,
+           explanation: q.explanation
           })),
           ...rawOpen.map((q: any, i: number) => ({
             id: rawMcqs.length + i + 1,
