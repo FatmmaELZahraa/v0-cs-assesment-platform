@@ -9,7 +9,7 @@
 
 📚 Training & Assessment Platform for Computer Science Students
 
-This project is an intelligent training and assessment platform designed to help Computer Science students improve their technical skills through structured learning and real-time evaluation.
+This project is a training and assessment platform designed to help Computer Science students improve their technical skills through structured learning and real-time evaluation.
 
 The platform allows users to select their preferred track and difficulty level, then automatically generates personalized questions to test their knowledge and problem-solving abilities. It provides instant feedback and performance analysis to support continuous learning and skill development.
 
