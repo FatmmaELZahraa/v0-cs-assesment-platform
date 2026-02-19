@@ -16,15 +16,9 @@ Your project is live at:
 
 **[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform)**
 
-## Build your app
 
-Continue building your app on:
 
-**[https://v0.app/chat/vvjs3oM0G7d](https://v0.app/chat/vvjs3oM0G7d)**
+## How It Works 
 
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1. Front End run with npm run dev
+2. Back End cd assesment , npm run start : dev
