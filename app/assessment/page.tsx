@@ -528,7 +528,6 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-react";
 import { CodeEditor } from "@/components/code-editor";
 import { StaggeredLoader } from "@/components/staggered-loader";
-// Make sure this path matches your project structure
 import { executeCode } from "@/assesment/src/services/execution.service";
 
 type QuestionType = "mcq" | "open-ended" | "code";
