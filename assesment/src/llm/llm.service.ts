@@ -263,9 +263,7 @@ Return JSON:
   return this.generateContent(prompt);
 }
 
-// ------------------------
-// Open-ended Evaluation
-// ------------------------
+
 async evaluateOpenEnded(
   userAnswer: string,
   question: string,
@@ -303,13 +301,11 @@ Return JSON:
 }
 
 
-  // --- MCQ evaluation helper ---
 private evaluateMCQs(userAnswers: any[], referenceMcqs: any[]) {
   return referenceMcqs.map((q, index) => {
     const uAns = String(userAnswers[index] || "").trim().toLowerCase();
     const rAns = String(q.answer || "").trim().toLowerCase();
 
-    // مطابقة ذكية: إذا كان المستخدم أرسل الحرف (A) أو النص كاملاً
     const isCorrect = uAns === rAns || 
                       rAns.startsWith(uAns) || 
                       uAns.includes(rAns);

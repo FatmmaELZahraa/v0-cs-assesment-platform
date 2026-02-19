@@ -138,11 +138,11 @@
 //   // 3. HELPER FUNCTIONS
 //   // ------------------------------------------------------------------
 
-  // const formatTime = (seconds: number) => {
-  //   const mins = Math.floor(seconds / 60)
-  //   const secs = seconds % 60
-  //   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  // }
+//   const formatTime = (seconds: number) => {
+//     const mins = Math.floor(seconds / 60)
+//     const secs = seconds % 60
+//     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+//   }
 
 //   const handleAnswer = (value: string) => {
 //     if (!questions[currentQuestion]) return
@@ -338,31 +338,31 @@
 
 //   return (
 //     <main className="min-h-screen bg-background">
-      //    <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-      //   <div className="max-w-6xl mx-auto px-4 py-4">
-      //     <div className="flex items-center justify-between">
-      //       <div className="flex items-center gap-4">
-      //         <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
-      //         <Badge variant="outline" className="capitalize">
-      //           {track.replace("-", " ")} - {level}
-      //         </Badge>
-      //       </div>
-      //       <div className="flex items-center gap-6">
-      //         <div className="flex items-center gap-2 text-muted-foreground">
-      //           <CheckCircle2 className="h-4 w-4 text-teal-500" />
-      //           <span className="text-sm">{answeredCount}/{questions.length} answered</span>
-      //         </div>
-      //         <div className="flex items-center gap-2 text-muted-foreground">
-      //           <Clock className="h-4 w-4" />
-      //           <span className="text-sm font-mono">{formatTime(timeRemaining)}</span>
-      //         </div>
-      //       </div>
-      //     </div>
-      //     <div className="mt-4">
-      //       <Progress value={progress} className="h-2" />
-      //     </div>
-      //   </div>
-      // </header>
+//          <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+//         <div className="max-w-6xl mx-auto px-4 py-4">
+//           <div className="flex items-center justify-between">
+//             <div className="flex items-center gap-4">
+//               <h1 className="text-xl font-semibold text-foreground">Technical Assessment</h1>
+//               <Badge variant="outline" className="capitalize">
+//                 {track.replace("-", " ")} - {level}
+//               </Badge>
+//             </div>
+//             <div className="flex items-center gap-6">
+//               <div className="flex items-center gap-2 text-muted-foreground">
+//                 <CheckCircle2 className="h-4 w-4 text-teal-500" />
+//                 <span className="text-sm">{answeredCount}/{questions.length} answered</span>
+//               </div>
+//               <div className="flex items-center gap-2 text-muted-foreground">
+//                 <Clock className="h-4 w-4" />
+//                 <span className="text-sm font-mono">{formatTime(timeRemaining)}</span>
+//               </div>
+//             </div>
+//           </div>
+//           <div className="mt-4">
+//             <Progress value={progress} className="h-2" />
+//           </div>
+//         </div>
+//       </header>
 
 //       <div className="max-w-6xl mx-auto px-4 py-8">
 //         <div className="flex gap-6">
@@ -513,7 +513,7 @@
 
 
 
-
+//It Works !!!!!!!!!!!!!
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -564,9 +564,14 @@ function AssessmentContent() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [languageMap, setLanguageMap] = useState<Record<number, number>>({});
   const [timeRemaining, setTimeRemaining] = useState(60 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState<any[]>([]);
-  const [executionError, setExecutionError] = useState("");
+  // const [isRunning, setIsRunning] = useState(false);
+  // const [testResults, setTestResults] = useState<any[]>([]);
+  // const [executionError, setExecutionError] = useState("");
+
+    // Execution State
+  const [isRunning, setIsRunning] = useState(false)
+  const [testResults, setTestResults] = useState<{passed: boolean, input: string, output: string, expected: string}[]>([])
+  const [executionError, setExecutionError] = useState("")
 
   // Fetch Questions from Backend
   useEffect(() => {
@@ -841,16 +846,26 @@ const handleSubmit = async () => {
                       {isRunning ? "Running..." : "Run Tests"}
                     </Button>
                   </div>
-                  {testResults.length > 0 && (
-                    <div className="bg-black/5 p-4 rounded-md font-mono text-xs space-y-1 border">
-                      {testResults.map((r, i) => (
-                        <div key={i} className={r.passed ? "text-green-600" : "text-red-600"}>
-                          Test {i+1}: {r.passed ? "✓ Passed" : `✗ Failed (Expected ${r.expected}, got ${r.output})`}
+      {(executionError || testResults.length > 0) && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                        <Label className="text-muted-foreground">Test Results</Label>
+                        {executionError && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm font-mono border border-red-500/50">{executionError}</div>}
+                        <div className="space-y-2">
+                            {testResults.map((res, idx) => (
+                                <div key={idx} className={`text-sm font-mono rounded-lg p-3 border ${res.passed ? "bg-teal-500/10 border-teal-500/30" : "bg-red-500/10 border-red-500/30"}`}>
+                                    <div className="flex justify-between mb-2">
+                                        <span>Test Case {idx + 1}</span>
+                                        <Badge variant="outline" className={res.passed ? "text-teal-400 border-teal-500" : "text-red-400 border-red-500"}>{res.passed ? "Passed" : "Failed"}</Badge>
+                                    </div>
+                                    <div>Input: {res.input}</div>
+                                    <div className="text-teal-400">Exp: {res.expected}</div>
+                                    {!res.passed && <div className="text-red-400">Act: {res.output}</div>}
+                                </div>
+                            ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </div>
               )}
 
               <div className="flex justify-between mt-8 pt-6 border-t">
