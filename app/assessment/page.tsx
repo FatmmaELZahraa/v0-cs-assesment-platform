@@ -527,6 +527,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-react";
 import { CodeEditor } from "@/components/code-editor";
+import { StaggeredLoader } from "@/components/staggered-loader";
 // Make sure this path matches your project structure
 import { executeCode } from "@/assesment/src/services/execution.service";
 
@@ -545,6 +546,9 @@ interface Question {
 const LANGUAGE_OPTIONS = [
   { id: 71, name: "Python (3.8.1)", value: "python" },
   { id: 63, name: "JavaScript (Node.js 12.14)", value: "javascript" },
+  { id: 54, name: "C++ (GCC 9.2.0)", value: "cpp" },
+  { id: 62, name: "Java (OpenJDK 13.0.1)", value: "java" },
+  { id: 51, name: "C# (Mono 6.6.0)", value: "csharp" },
 ];
 
 function AssessmentContent() {
@@ -626,8 +630,11 @@ function AssessmentContent() {
   }, []);
 
   // Safety Guards for "Cannot read properties of undefined"
-  if (loading) return <div className="flex justify-center items-center min-h-screen">Initializing Assessment...</div>;
-  if (questions.length === 0) return <div className="flex justify-center items-center min-h-screen">No questions found.</div>;
+  // if (loading) return <div className="flex justify-center items-center min-h-screen">Initializing Assessment...</div>;
+  if (loading) {
+  return <StaggeredLoader />;
+}
+  if (questions.length === 0) return <div className="flex justify-center items-center min-h-screen">LLM Rate Exhsted , Try Tommorow if still you can change Api Key which provided in Readme File.</div>;
   
   const question = questions[currentQuestion];
   if (!question) return <div className="flex justify-center items-center min-h-screen">Loading question...</div>;
@@ -688,7 +695,7 @@ function AssessmentContent() {
   // };
 const handleSubmit = async () => {
   try {
-    // 1. تصفية الأسئلة حسب النوع
+   
     const mcqs = questions.filter(q => q.type === 'mcq');
     const openEnded = questions.filter(q => q.type === 'open-ended');
     const coding = questions.filter(q => q.type === 'code');
@@ -698,24 +705,24 @@ const handleSubmit = async () => {
       mcqs: mcqs.map(q => ({ 
         question: q.description, 
         options: q.options,
-        answer: (q as any).answer, // تأكدي من أن الحقل 'answer' موجود في الكائن الأصلي
+        answer: (q as any).answer, 
         explanation: (q as any).explanation 
 
     
       })),
       openEnded: openEnded.map(q => ({ 
         question: q.description,
-        modelAnswer: (q as any).modelAnswer // ضروري لتقييم Gemini
+        modelAnswer: (q as any).modelAnswer 
       })),
       coding: coding.map(q => ({ 
         title: q.title, 
         description: q.description, 
         testCases: q.testCases,
-        solution: (q as any).solution // ضروري للتقييم البرمجي
+        solution: (q as any).solution 
       }))
     }));
 
-    // 3. تجميع إجابات المستخدم
+   
     const userAnswers = {
       mcqs: mcqs.map(q => answers[q.id] || ""),
       openEnded: openEnded.map(q => answers[q.id] || ""),
@@ -724,7 +731,7 @@ const handleSubmit = async () => {
 
     localStorage.setItem("last_assessment_answers", JSON.stringify(userAnswers));
 
-    console.log("🚀 Submitting to results page...");
+    console.log(" Submitting to results page...");
     router.push("/results");
   } catch (e) {
     console.error("Submission Error:", e);
@@ -851,7 +858,7 @@ const handleSubmit = async () => {
                   <ChevronLeft className="mr-2 w-4 h-4" /> Previous
                 </Button>
                 {currentQuestion === questions.length - 1 ? (
-                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">Finish & Submit</Button>
+                  <Button onClick={handleSubmit} className="ml-2 hover:ml-2 700 text-black  transition-all shadow-sm">Finish & Submit</Button>
                 ) : (
                   <Button onClick={() => setCurrentQuestion(q => q + 1)}>
                     Next <ChevronRight className="ml-2 w-4 h-4" />
@@ -868,7 +875,7 @@ const handleSubmit = async () => {
 
 export default function AssessmentPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Assessment...</div>}>
+  <Suspense fallback={<StaggeredLoader />}>
       <AssessmentContent />
     </Suspense>
   );

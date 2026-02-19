@@ -116,9 +116,9 @@ export default function ResultsPage() {
             <RotateCcw className="h-4 w-4" /> Retake Test
           </Button>
         </Link>
-        <Button className="bg-teal-500 hover:bg-teal-600 text-black w-full sm:w-auto gap-2">
+        {/* <Button className="bg-teal-500 hover:bg-teal-600 text-black w-full sm:w-auto gap-2">
           <Download className="h-4 w-4" /> Download PDF Report
-        </Button>
+        </Button> */}
       </div>
     </main>
   );
