@@ -167,7 +167,7 @@ export default function ResultsPage() {
           throw new Error("No assessment data found. Please retake the test.");
         }
 
-        const response = await fetch("http://localhost:5000/assessment/submit", {
+        const response = await fetch("https://cs-asseement-backend-production.up.railway.app/assessment/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ originalAssessment, userAnswers }),

@@ -6,7 +6,7 @@ async function bootstrap() {
 
   // ✅ CORRECT: Enable CORS BEFORE starting the server
   app.enableCors({
-    origin: 'http://localhost:3000', // Front-end URL
+    origin: 'https://v0-algo-trading-platform-beta-lilac.vercel.app/', // Front-end URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -578,7 +578,7 @@ function AssessmentContent() {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/assessment/generate?track=${track}&level=${level}`);
+        const response = await fetch(`https://cs-asseement-backend-production.up.railway.app/assessment/generate?track=${track}&level=${level}`);
         if (!response.ok) throw new Error(`Server Error: ${response.status}`);
         
         const data = await response.json();
