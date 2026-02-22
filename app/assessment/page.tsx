@@ -529,7 +529,7 @@ import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Play } from "lucide-rea
 import { CodeEditor } from "@/components/code-editor";
 import { StaggeredLoader } from "@/components/staggered-loader";
 import { executeCode } from "@/assesment/src/services/execution.service";
-
+import axios from 'axios';
 type QuestionType = "mcq" | "open-ended" | "code";
 
 interface Question {

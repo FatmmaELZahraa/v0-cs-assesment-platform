@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TracksService } from '../skills/skills.service';
 import { LlmService } from '../llm/llm.service';
-
+import axios from 'axios';
 @Injectable()
 export class AssessmentService {
   constructor(
