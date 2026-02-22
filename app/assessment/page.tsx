@@ -517,7 +517,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense,useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -563,6 +563,7 @@ function AssessmentContent() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [languageMap, setLanguageMap] = useState<Record<number, number>>({});
   const [timeRemaining, setTimeRemaining] = useState(60 * 60);
+   const audioRef = useRef<HTMLAudioElement | null>(null);
   // const [isRunning, setIsRunning] = useState(false);
   // const [testResults, setTestResults] = useState<any[]>([]);
   // const [executionError, setExecutionError] = useState("");
@@ -633,6 +634,26 @@ function AssessmentContent() {
     return () => clearInterval(timer);
   }, []);
 
+  // Play sound after test results are updated
+useEffect(() => {
+  if (testResults.length === 0 || !audioRef.current) return;
+
+  const allPassed = testResults.every(res => res.passed);
+  
+  audioRef.current.src = allPassed ? "/sounds/sucess.mp3" : "/sounds/fail.mp3";
+  audioRef.current.play().catch(err => console.log("Audio play failed:", err));
+
+}, [testResults]);
+
+useEffect(() => {
+  if (testResults.length === 0) return;
+
+  const allPassed = testResults.every(res => res.passed);
+
+  if (!allPassed && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]); // vibrate pattern for failure
+  }
+}, [testResults]);
   // Safety Guards for "Cannot read properties of undefined"
   // if (loading) return <div className="flex justify-center items-center min-h-screen">Initializing Assessment...</div>;
   if (loading) {
@@ -673,6 +694,7 @@ function AssessmentContent() {
       setIsRunning(false);
     }
   };
+
 
   // const handleSubmit = async () => {
   //   try {
