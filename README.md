@@ -70,7 +70,7 @@ Database: MongoDB.
 
 Your project is live at:
 
-**[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform)**
+**[[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://v0-algo-trading-platform-beta-lilac.vercel.app/))**
 
 
 
