@@ -70,46 +70,8 @@ Database: MongoDB.
 
 Your project is live at:
 
-**[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform)**
+**[[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://v0-algo-trading-platform-beta-lilac.vercel.app/))**
 
 
 
-## How It Works 
 
-1. Front End run with npm run dev
-2. Back End cd assesment , npm run start : dev
-3. to test generation of questions  on Postman/thunder client   New Request -> Get -> Querey Params track  backend  level  junior  ->http://localhost:5000/assessment/generate?track=backend&level=junior
-4. to test submit Post->http://localhost:5000/assessment/submit-> Body Jison as
-  
-6. {
-  "originalAssessment": {
-    "mcqs": [
-      { "question": "Which of the following best describes the concept of Polymorphism...", "answer": "A) The ability of an object to take on many forms." },
-      { "question": "Which HTTP method is generally considered idempotent?", "answer": "B) PUT" },
-      { "question": "In SQL, which keyword is used to retrieve only unique values...", "answer": "B) DISTINCT" }
-    ],
-    "openEnded": [
-      { "question": "Describe a common error handling strategy...", "modelAnswer": "A common error handling strategy involves using a centralized error middleware..." },
-      { "question": "Explain the purpose of Git branches...", "modelAnswer": "Git branches allow developers to work on features in isolation..." }
-    ],
-    "coding": {
-      "title": "Product Inventory Aggregator",
-      "description": "Calculate total value of products for each category...",
-      "constraints": ["price will always be a non-negative number"]
-    }
-  },
-  "userAnswers": {
-    "mcqs": [
-      "A) The ability of an object to take on many forms.",
-      "B) PUT",
-      "B) DISTINCT"
-    ],
-    "openEnded": [
-      "I would implement a global exception handler or middleware to catch all errors, log them for debugging, and return a standard JSON response with 4xx or 5xx status codes.",
-      "Git branches are used for isolating new features or bug fixes. Developers create a branch, commit changes, and merge it back to the main branch after a review."
-    ],
-    "coding": [
-      "function aggregateInventoryValue(products) { const total = {}; products.forEach(p => { total[p.category] = (total[p.category] || 0) + p.price; }); return total; }"
-    ]
-  }
-}
