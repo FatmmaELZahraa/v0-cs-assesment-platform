@@ -68,11 +68,6 @@ Database: MongoDB.
 
 Note: if any error message failed , this because API Gemeni Limit Try after 24 hours ,else if  messege LLM exsuhsted check demo ->  you can go for Google ai studion and generate new api key then paste it in assesment/llm/llm.service.ts 
 
-## Deployment
-
-Your project is live at:
-
-**[https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://vercel.com/fatmmaelzahraas-projects/v0-algo-trading-platform](https://v0-algo-trading-platform-beta-lilac.vercel.app/))](https://v0-algo-trading-platform-beta-lilac.vercel.app/)]**
 
 
 
