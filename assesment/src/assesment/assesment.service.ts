@@ -9,9 +9,6 @@ export class AssessmentService {
     private readonly llmService: LlmService,
   ) {}
 
-  // ------------------------
-  // Create Assessment
-  // ------------------------
   async createAssessment(track: string, level: string) {
     const skills =
       await this.tracksService.getSkillsByTrackAndLevel(track, level);
@@ -39,16 +36,14 @@ export class AssessmentService {
     };
   }
 
-  // ------------------------
-  // Evaluate Full Assessment
-  // ------------------------
+
  async evaluateFullAssessment(submissionData: {
   originalAssessment: any;
   userAnswers: { mcqs: any[]; openEnded: any[]; coding: any[] };
 }) {
   const { originalAssessment, userAnswers } = submissionData;
 
-  // 1. Evaluate MCQs
+
   const mcqResults = (originalAssessment.mcqs || []).map((q: any, index: number) => {
     const uAns = String(userAnswers.mcqs?.[index] || "").trim().toLowerCase();
     const rAns = String(q.answer || "").trim().toLowerCase();
@@ -66,7 +61,6 @@ export class AssessmentService {
   const correctMcqs = mcqResults.filter(r => r.isCorrect).length;
   const mcqScore = (correctMcqs / (mcqResults.length || 1)) * 40;
 
-  // 2. Convert coding to array safely
 const codingQuestions = Array.isArray(originalAssessment.coding)
   ? originalAssessment.coding
   : originalAssessment.coding
@@ -74,8 +68,7 @@ const codingQuestions = Array.isArray(originalAssessment.coding)
   : [];
 
 
-  // 3. Build prompt or call AI for coding & open-ended evaluation
-  // Example: call llmService.generateContent() for coding and open-ended
+
 
 const aiEvaluation = await this.llmService.generateContent(`
 Evaluate these technical responses for a ${originalAssessment.metadata?.track || 'developer'}:
@@ -98,7 +91,7 @@ Return ONLY JSON:
 }
 `);
 
-  // 4. Compute open-ended & coding scores
+
   const openTotalPoints = (aiEvaluation?.openEndedScores || []).reduce((acc, q) => acc + (q.score || 0), 0);
   const openEndedScore = (openTotalPoints / ((originalAssessment.openEnded?.length || 1) * 10)) * 30;
 

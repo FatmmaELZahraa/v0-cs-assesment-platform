@@ -91,7 +91,7 @@ Do not include markdown or any text outside JSON.
 
   const result = await this.generateContent(prompt);
 
-  // Ensure coding is always an array
+
   if (result?.coding && !Array.isArray(result.coding)) {
     result.coding = [result.coding];
   }

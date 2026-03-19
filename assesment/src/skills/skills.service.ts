@@ -12,7 +12,7 @@ export class TracksService {
     const data = await this.skillModel.findOne({ track, level }).exec();
     return data ? data.skills : [];
   } catch (error) {
-    console.error("خطأ في الاتصال بقاعدة البيانات:", error.message);
+    console.error("Error fetching skills:", error.message);
     return ["Programming Fundamentals", "Data Structures", "Web Basics"]; 
   }
 }
